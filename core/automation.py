@@ -28,7 +28,7 @@ class AutomationController:
             else:
                 return self._inject_via_typewrite(text)
         except Exception as e:
-            print(f"[Error] Fallo en inyección: {e}")
+            print(f"[Error] Injection failed: {e}")
             return False
 
     def _inject_via_paste(self) -> bool:
@@ -43,7 +43,7 @@ class AutomationController:
                 pyautogui.press("enter")
             return True
         except Exception as e:
-            print(f"[Error] Fallo en pegado: {e}")
+            print(f"[Error] Paste failed: {e}")
             return False
 
     def _inject_via_typewrite(self, text: str) -> bool:
@@ -55,7 +55,7 @@ class AutomationController:
                 pyautogui.press("enter")
             return True
         except Exception as e:
-            print(f"[Error] Fallo en escritura: {e}")
+            print(f"[Error] Typewrite failed: {e}")
             return False
 
     def simulate_enter(self):

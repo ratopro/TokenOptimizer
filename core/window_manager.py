@@ -37,14 +37,14 @@ class WindowManager:
                                 windows.append(name)
                         except:
                             pass
-                    return sorted(windows) if windows else ["Sin ventanas"]
+                    return sorted(windows) if windows else ["No windows"]
                 except FileNotFoundError:
-                    return ["Error: xdotool no instalado"]
+                    return ["Error: xdotool not installed"]
                 except Exception as e:
                     print(f"[Error] Linux: {e}")
                     return []
         except Exception as e:
-            print(f"[Error] Error al obtener ventanas: {e}")
+            print(f"[Error] Get windows: {e}")
             return []
 
     def focus_window_by_title(self, title_substring: str) -> bool:
@@ -74,7 +74,7 @@ class WindowManager:
             
             return False
         except Exception as e:
-            print(f"[Error] Error al enfocar ventana: {e}")
+            print(f"[Error] Focus window: {e}")
             return False
 
     def check_window_exists(self, title_substring: str) -> bool:

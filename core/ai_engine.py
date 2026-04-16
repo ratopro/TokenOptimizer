@@ -73,11 +73,11 @@ class OllamaEngine:
 
     def optimize_prompt(self, prompt: str, callback: Callable[[str], None], traducir: bool = True) -> threading.Thread:
         if not self.current_model:
-            callback("[Error] Modelo no seleccionado")
+            callback("[Error] No model selected")
             return None
         
         if not prompt.strip():
-            callback("[Error] Prompt vacío")
+            callback("[Error] Empty prompt")
             return None
 
         self._traducir = traducir
@@ -115,7 +115,7 @@ class OllamaEngine:
             callback(optimized_text)
             
         except Exception as e:
-            callback(f"[Error] Fallo en la generación: {e}")
+            callback(f"[Error] Generation failed: {e}")
 
     def check_connection(self) -> bool:
         try:
