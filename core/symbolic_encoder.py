@@ -6,12 +6,19 @@ def apply_symbolic_mapping(text):
     para reducir tokens antes del procesamiento del LLM.
     """
     mappings = {
+        r'\buna\b': '1',
+        r'\bdos\b': '2',
+        r'\btres\b': '3',
+        r'\bdiez mil\b': '10k',
+        r'\bun millón\b': '1M',
         r'\by\b': '&',
         r'\bcon\b': 'w/',
         r'\bpara\b': '->',
         r'\bentonces\b': '=>',
         r'\ben\b': '@',
         r'\bcada\b': '∀',
+        r'\btodos\b': '∀',
+        r'\balgunos\b': '∃',
         r'\bexiste\b': '∃',
         r'\bpor ejemplo\b': 'e.g.',
         r'\bes decir\b': 'i.e.',
