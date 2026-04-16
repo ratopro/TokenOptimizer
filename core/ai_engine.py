@@ -96,10 +96,13 @@ class OllamaEngine:
             system_prompt = self.get_prompt(self._traducir)
             
             if self._traducir:
-                prompt = f"Translate to English, then simplify: {prompt}"
+                prefix = "Translate to English and simplify: "
+            else:
+                prefix = "Simplify: "
             
-            prompt = apply_symbolic_mapping(prompt)
-            full_prompt = f"{system_prompt}\n\nInput:\n{prompt}"
+            prompt_with_prefix = prefix + prompt
+            prompt_encoded = apply_symbolic_mapping(prompt_with_prefix)
+            full_prompt = f"{system_prompt}\n\nInput:\n{prompt_encoded}"
             
             options = {
                 'temperature': mode["temperature"],
