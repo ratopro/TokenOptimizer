@@ -31,9 +31,7 @@ def apply_symbolic_mapping(text):
         r'\bsin\b': 'w/o',
         r'\bsin embargo\b': '!',
         r'\ben\b': '@',
-        r'\bde\b': ':',
-        r'\bdel\b': ':',
-        r'\bde la\b': ':',
+        r'\bde\b': '', r'\bdel\b': '', r'\bde la\b': '',
         r'\bcada\b': '∀', r'\btodos\b': '∀',
         r'\balgunos\b': '∃', r'\bexiste\b': '∃',
         r'\bpor ejemplo\b': 'e.g.', r'\bpor ej\b': 'e.g.',
@@ -104,6 +102,40 @@ def apply_symbolic_mapping(text):
         
         r'\bcon respecto a\b': 're', r'\bsobre\b': 're', r'\busando\b': 'using',
         r'\bincluyendo\b': 'inc', r'\bmediante\b': 'via',
+        
+        r'\blistas?\b': '[]', r'\barrays?\b': '[]',
+        r'\bdiccionarios?\b': '{}', r'\bobjects?\b': '{}',
+        r'\bcadenas?\b': 'str', r'\btexto\b': 'str',
+        r'\bentero\b': 'int', r'\binteger\b': 'int',
+        r'\bbooleano\b': 'bool', r'\bboolean\b': 'bool',
+        r'\bparámetros?\b': 'args', r'\bargumentos?\b': 'args',
+        r'\bvariable\b': 'var',
+        
+        r'\bsi entonces\b': 'if:', r'\bsi no\b': 'else:',
+        r'\bsino\b': 'else:',
+        r'\bmientras\b': 'while:',
+        r'\bretornar\b': 'ret', r'\breturn\b': 'ret',
+        r'\bverdadero\b': 'T', r'\btrue\b': 'T',
+        r'\bfalso\b': 'F', r'\bfalse\b': 'F',
+        r'\bes\s+igual\s+a\b': '==', r'\bequal\s+to\b': '==',
+        r'\bdiferente\b': '!=',
+        r'\bmás\s+igual\b': '+=',
+        
+        r'\bbase\s+de\s+datos\b': 'db', r'\bdatabase\b': 'db',
+        r'\bservidor\b': 'srv', r'\bserver\b': 'srv',
+        r'\busuario\b': 'usr', r'\buser\b': 'usr',
+        r'\bcontraseña\b': 'pwd', r'\bpassword\b': 'pwd',
+        r'\benlace\b': 'lnk', r'\blink\b': 'lnk',
+        r'\bventana\b': 'win', r'\bwindow\b': 'win',
+        r'\bbotón\b': 'btn', r'\bbutton\b': 'btn',
+        
+        r'\bprogramar\b': 'dev:', r'\bdesarrollar\b': 'dev:',
+        r'\bcompilar\b': 'build:', r'\bbuild\b': 'build:',
+        r'\bdesplegar\b': 'deploy:', r'\bdeploy\b': 'deploy:',
+        r'\bcorregir\b': 'fix:', r'\bfix\b': 'fix:',
+        r'\bbug\b': '🐞',
+        r'\brefactorizar\b': 'refac:', r'\brefactor\b': 'refac:',
+        r'\bcomentar\b': 'doc:', r'\bdocumentar\b': 'doc:',
     }
     
     for pattern, symbol in mappings.items():
