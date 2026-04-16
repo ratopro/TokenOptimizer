@@ -1,3 +1,4 @@
+import re
 import threading
 import ollama
 from typing import Optional, Callable
@@ -61,13 +62,11 @@ class OllamaEngine:
 
     def get_prompt(self, traducir: bool = True) -> str:
         mode = OPTIMIZATION_MODES[self._mode]
-        base_prompt = mode["prompt"]
         
         if traducir:
-            base_prompt = (
-                f"First simplify in English: {base_prompt}\n"
-                "Then translate to English if needed."
-            )
+            base_prompt = f"{mode['prompt']} Respond in English only. Output code without explanations."
+        else:
+            base_prompt = mode["prompt"]
         
         return base_prompt
 
@@ -95,14 +94,12 @@ class OllamaEngine:
             
             system_prompt = self.get_prompt(self._traducir)
             
-            if self._traducir:
-                prefix = "Translate to English and simplify: "
+            if self._mode == "Symbolic":
+                prompt_for_llm = apply_symbolic_mapping(prompt)
             else:
-                prefix = "Simplify: "
+                prompt_for_llm = prompt
             
-            prompt_with_prefix = prefix + prompt
-            prompt_encoded = apply_symbolic_mapping(prompt_with_prefix)
-            full_prompt = f"{system_prompt}\n\nInput:\n{prompt_encoded}"
+            full_prompt = f"{system_prompt}\n\n{prompt_for_llm}"
             
             options = {
                 'temperature': mode["temperature"],
@@ -117,6 +114,7 @@ class OllamaEngine:
             )
             
             optimized_text = response['response'].strip()
+            optimized_text = self._clean_thought_process(optimized_text)
             callback(optimized_text)
             
         except Exception as e:
@@ -128,3 +126,6 @@ class OllamaEngine:
             return True
         except Exception:
             return False
+    
+    def _clean_thought_process(self, text: str) -> str:
+        return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
