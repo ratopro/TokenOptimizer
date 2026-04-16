@@ -145,10 +145,6 @@ def apply_symbolic_mapping(text):
         r'\bstep\s+\d+\b': '', r'\bstep\d+\b': '',
         r'\bwe\s+(have|see|know)\b': '', r'\bfirst\b': '',
     }
-        r'\breasoning\b': '', r'\bprocess\b': '',
-        r'\bstep\s+\d+\b': '', r'\bbefore\b': '',
-        r'\bwe\s+have\b': '', r'\bfirst\b': '',
-    }
     
     for pattern, symbol in mappings.items():
         text = re.sub(pattern, symbol, text, flags=re.IGNORECASE)
