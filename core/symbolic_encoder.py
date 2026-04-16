@@ -74,6 +74,12 @@ def apply_symbolic_mapping(text):
         r'\btener\b': '∋',
         r'\bser\b': '≡',
         r'\bestar\b': '≈',
+        r'\brojo\b': '#F00',
+        r'\bverde\b': '#0F0',
+        r'\bazul\b': '#00F',
+        r'\bblanco\b': '#FFF',
+        r'\bnegro\b': '#000',
+        r'\bcolor\b': 'clr',
     }
     
     for pattern, symbol in mappings.items():
