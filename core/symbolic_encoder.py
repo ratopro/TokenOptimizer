@@ -136,6 +136,18 @@ def apply_symbolic_mapping(text):
         r'\bbug\b': '🐞',
         r'\brefactorizar\b': 'refac:', r'\brefactor\b': 'refac:',
         r'\bcomentar\b': 'doc:', r'\bdocumentar\b': 'doc:',
+        
+        r'\bthought\b': '', r'\bthinking\b': '', r'\bthoughts\b': '',
+        r'\bconsider\b': '', r'\bconsidering\b': '', r'\bconsideration\b': '',
+        r'\beval\b': '', r'\bevaluating\b': '', r'\bevaluation\b': '',
+        r'\banalyze\b': '', r'\banalyzing\b': '', r'\banalysis\b': '',
+        r'\breason\b': '', r'\breasoning\b': '', r'\breasoned\b': '',
+        r'\bstep\s+\d+\b': '', r'\bstep\d+\b': '',
+        r'\bwe\s+(have|see|know)\b': '', r'\bfirst\b': '',
+    }
+        r'\breasoning\b': '', r'\bprocess\b': '',
+        r'\bstep\s+\d+\b': '', r'\bbefore\b': '',
+        r'\bwe\s+have\b': '', r'\bfirst\b': '',
     }
     
     for pattern, symbol in mappings.items():
