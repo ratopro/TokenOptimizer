@@ -31,7 +31,13 @@ class ConfigManager:
             "metodo": "Pegado Rápido",
             "enviar_inmediato": False,
             "mostrar_resultado": True,
-            "tamano_texto": 14
+            "tamano_texto": 14,
+            "modelos": {
+                "Light": "",
+                "Optimized": "",
+                "Aggressive": "",
+                "Symbolic": ""
+            }
         }
     
     def guardar(self):
@@ -44,4 +50,13 @@ class ConfigManager:
     
     def set(self, key, value):
         self.data[key] = value
+        self.guardar()
+    
+    def get_modelo_by_mode(self, mode: str) -> str:
+        return self.data.get("modelos", {}).get(mode, "")
+    
+    def set_modelo_by_mode(self, mode: str, model: str):
+        if "modelos" not in self.data:
+            self.data["modelos"] = {}
+        self.data["modelos"][mode] = model
         self.guardar()

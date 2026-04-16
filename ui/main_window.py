@@ -95,6 +95,10 @@ class TokenShrinkApp(ctk.CTk):
         btn_limpiar.grid(row=0, column=6, padx=2)
         ToolTip(btn_limpiar, "Limpiar campos de texto")
 
+        btn_modelos = ctk.CTkButton(frame_config, text="⚙️", width=28, height=24, command=self._abrir_config_modelos)
+        btn_modelos.grid(row=0, column=7, padx=2)
+        ToolTip(btn_modelos, "Configurar modelos por modo")
+
         frame_entrada = ctk.CTkFrame(self)
         frame_entrada.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
 
@@ -244,10 +248,48 @@ class TokenShrinkApp(ctk.CTk):
     def _on_modo_change(self, mode):
         self.ai_engine.set_mode(mode)
         self.config.set("modo", mode)
+        
+        modelo_asignado = self.config.get_modelo_by_mode(mode)
+        if modelo_asignado:
+            self.ai_engine.set_model(modelo_asignado)
+            self.combo_modelos.set(modelo_asignado)
+        
         if mode == "Symbolic":
             self.label_estado.configure(text="Recommended: llama3.2:3b or qwen2.5:1.5b", text_color="cyan")
         else:
             self.label_estado.configure(text="Ready", text_color="gray")
+
+    def _abrir_config_modelos(self):
+        ventana_config = ctk.CTkToplevel(self)
+        ventana_config.title("Configurar Modelos")
+        ventana_config.geometry("500x400")
+        
+        modos = ["Light", "Optimized", "Aggressive", "Symbolic"]
+        self._combos_modelos = {}
+        
+        for modo in modos:
+            frame_mode = ctk.CTkFrame(ventana_config)
+            frame_mode.pack(fill="x", padx=10, pady=5)
+            
+            ctk.CTkLabel(frame_mode, text=modo, width=100).pack(side="left", padx=5)
+            
+            combo = ctk.CTkComboBox(frame_mode, values=self.modelos, state="readonly", width=250)
+            modelo_actual = self.config.get_modelo_by_mode(modo)
+            if modelo_actual and modelo_actual in self.modelos:
+                combo.set(modelo_actual)
+            combo.pack(side="left", padx=5)
+            self._combos_modelos[modo] = combo
+        
+        def guardar_modelos():
+            for modo, combo in self._combos_modelos.items():
+                modelo = combo.get()
+                if modelo:
+                    self.config.set_modelo_by_mode(modo, modelo)
+            ventana_config.destroy()
+            self.label_estado.configure(text="Modelos guardados", text_color="green")
+        
+        btn_guardar = ctk.CTkButton(ventana_config, text="Guardar", command=guardar_modelos)
+        btn_guardar.pack(pady=10)
 
     def _on_ventana_change(self, choice):
         self.config.set("ventana", choice)
