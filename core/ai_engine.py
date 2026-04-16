@@ -93,10 +93,12 @@ class OllamaEngine:
         try:
             mode = OPTIMIZATION_MODES[self._mode]
             
-            if self._mode == "Symbolic":
-                prompt = apply_symbolic_mapping(prompt)
-            
             system_prompt = self.get_prompt(self._traducir)
+            
+            if self._traducir:
+                prompt = f"Translate to English, then simplify: {prompt}"
+            
+            prompt = apply_symbolic_mapping(prompt)
             full_prompt = f"{system_prompt}\n\nInput:\n{prompt}"
             
             options = {
