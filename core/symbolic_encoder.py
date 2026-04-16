@@ -74,12 +74,18 @@ def apply_symbolic_mapping(text):
         r'\btener\b': '∋',
         r'\bser\b': '≡',
         r'\bestar\b': '≈',
-        r'\brojo\b': '#F00',
-        r'\bverde\b': '#0F0',
-        r'\bazul\b': '#00F',
+        r'\brojo\b': '#F00', r'\bcarmesi\b': '#F00', r'\bescarlata\b': '#F00',
+        r'\bnaranja\b': '#FA0', r'\bnaranaja\b': '#FA0',
+        r'\bamarillo\b': '#FF0',
+        r'\bverde\b': '#0F0', r'\besmeralda\b': '#0F0', r'\blima\b': '#0F0',
+        r'\bazul\b': '#00F', r'\bceleste\b': '#0AF', r'\bazure\b': '#00F',
+        r'\bvioleta\b': '#80F', r'\bmorado\b': '#80F', r'\bpurpura\b': '#80F',
+        r'\brosa\b': '#F0A', r'\bflor\b': '#F0A',
         r'\bblanco\b': '#FFF',
-        r'\bnegro\b': '#000',
-        r'\bcolor\b': 'clr',
+        r'\bnegro\b': '#000', r'\bcarbon\b': '#000',
+        r'\bgris\b': '#888', r'\bgris oscuro\b': '#444', r'\bgris claro\b': '#CCC',
+        r'\bcafe\b': '#630', r'\bmarron\b': '#630', r'\bcastaño\b': '#630',
+        r'\bcolor\b': 'clr', r'\bcolores\b': 'clr',
     }
     
     for pattern, symbol in mappings.items():
