@@ -1,0 +1,17 @@
+# Interfaz Gráfica
+customtkinter
+darkdetect
+
+# IA y NLP
+ollama
+spacy
+
+# Automatización e Inyección
+pyautogui
+pyperclip
+pynput
+
+# Gestión de Ventanas y Sistema
+psutil
+pygetwindow; sys_platform == 'win32'
+pyobjc; sys_platform == 'darwin'

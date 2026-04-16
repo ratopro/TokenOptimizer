@@ -1,0 +1,29 @@
+import re
+
+def apply_symbolic_mapping(text):
+    """
+    Sustituye palabras comunes por operadores lógicos y símbolos 
+    para reducir tokens antes del procesamiento del LLM.
+    """
+    mappings = {
+        r'\by\b': '&',
+        r'\bcon\b': 'w/',
+        r'\bpara\b': '->',
+        r'\bentonces\b': '=>',
+        r'\ben\b': '@',
+        r'\bcada\b': '∀',
+        r'\bexiste\b': '∃',
+        r'\bpor ejemplo\b': 'e.g.',
+        r'\bes decir\b': 'i.e.',
+        r'\bigual a\b': '=',
+        r'\bdiferente de\b': '!=',
+        r'\bmayor que\b': '>',
+        r'\bmenor que\b': '<'
+    }
+    
+    for pattern, symbol in mappings.items():
+        text = re.sub(pattern, symbol, text, flags=re.IGNORECASE)
+    
+    text = " ".join(text.split())
+    
+    return text
