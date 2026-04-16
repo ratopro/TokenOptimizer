@@ -28,12 +28,12 @@ def apply_symbolic_mapping(text):
         r'\bentonces\b': '=>',
         r'\bsi\b': '?',
         r'\bno\b': '!',
-        r'\bsin\b': '¬',
+        r'\bsin\b': 'w/o',
+        r'\bsin embargo\b': '!',
         r'\ben\b': '@',
         r'\bde\b': ':',
         r'\bdel\b': ':',
         r'\bde la\b': ':',
-        r'\bdel\b': ':',
         r'\bcada\b': '∀', r'\btodos\b': '∀',
         r'\balgunos\b': '∃', r'\bexiste\b': '∃',
         r'\bpor ejemplo\b': 'e.g.', r'\bpor ej\b': 'e.g.',
@@ -86,6 +86,24 @@ def apply_symbolic_mapping(text):
         r'\bgris\b': '#888', r'\bgris oscuro\b': '#444', r'\bgris claro\b': '#CCC',
         r'\bcafe\b': '#630', r'\bmarron\b': '#630', r'\bcastaño\b': '#630',
         r'\bcolor\b': 'clr', r'\bcolores\b': 'clr',
+        r'\bfondo\b': 'bg', r'\btexto\b': 'txt', r'\bestilo\b': 'sty',
+        
+        r'\buna?\b': '1', r'\bdos\b': '2', r'\btres\b': '3',
+        r'\btodos?\b': '∀', r'\balgunos?\b': '∃', r'\bninguno\b': '∅',
+        r'\baproximadamente\b': '≈', r'\bmáximo\b': 'max', r'\bmínimo\b': 'min',
+        
+        r'\bactúa como\b': 'as:', r'\bes como\b': 'as:',
+        r'\bescribe\b': 'gen:', r'\bexplica\b': 'exp:',
+        r'\bresume\b': 'tl;dr:', r'\btraduce\b': 'tr:',
+        r'\brevisa\b': 'check:', r'\bbusca\b': 'find:',
+        r'\bayuda\b': 'help:', r'\bconsulta\b': 'qry:',
+        
+        r'\bahora\b': 'now', r'\bantes\b': 'prev', r'\bdespués\b': 'next',
+        r'\bsiempre\b': '∞', r'\burgetne\b': '!', r'\bimportante\b': '!!',
+        r'\bejemplo\b': 'ex:', r'\bpregunta\b': 'q:', r'\brespuesta\b': 'ans:',
+        
+        r'\bcon respecto a\b': 're', r'\bsobre\b': 're', r'\busando\b': 'using',
+        r'\bincluyendo\b': 'inc', r'\bmediante\b': 'via',
     }
     
     for pattern, symbol in mappings.items():
