@@ -168,7 +168,7 @@ class TokenShrinkApp(ctk.CTk):
         self.lbl_lang.configure(text=t["lang"])
         self.lbl_method.configure(text=t["method"])
         
-        if self.label_st.cget("text") in ["Ready", "Listo", "Prêt", "Bereit", "Pronto"]:
+        if hasattr(self, "label_st") and self.label_st.cget("text") in ["Ready", "Listo", "Prêt", "Bereit", "Pronto"]:
             self.label_st.configure(text=t["ready"])
 
         # Actualizar placeholders si están activos
@@ -326,9 +326,6 @@ class TokenShrinkApp(ctk.CTk):
         self.combo_modo.pack(side="left", padx=5)
         self.combo_modo.set(self.config.get("modo", "Optimized"))
         
-        # Aplicar localización inicial
-        self._localizar_interfaz()
-
         # Contadores de Tokens
         f_stats = ctk.CTkFrame(frame_foot, fg_color="transparent")
         f_stats.pack(side="right", padx=10)
@@ -354,6 +351,9 @@ class TokenShrinkApp(ctk.CTk):
         
         # Aplicar fuente inicial
         self._aplicar_fuente()
+        
+        # Aplicar localización final cuando todo el árbol de widgets existe
+        self._localizar_interfaz()
 
     def _cargar_datos_iniciales(self):
         self.label_st.configure(text="Booting...", text_color="yellow")
