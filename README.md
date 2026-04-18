@@ -1,72 +1,73 @@
-# TokenOptimizer
+# 🚀 TokenOptimizer
 
-Desktop app for prompt optimization via Ollama with auto-send to other applications.
+**TokenOptimizer** is a professional-grade desktop application designed to optimize and compress AI prompts using local models via **Ollama**. It features a high-density UI, symbolic pre-encoding, and seamless integration with other applications.
 
-## Features
+![TokenOptimizer Mockup](assets/readme_mockup.png)
 
-- **4 Optimization Modes**: Light, Optimized, Aggressive, Symbolic
-- **Symbolic Pre-encoder**: Reduces tokens before LLM processing
-- **Auto-send**: Direct integration with other apps
-- **History**: Navigate with Up/Down arrows
-- **Zoom**: Ctrl++ / Ctrl+- for font size
+## ✨ Key Features
 
-## Installation
+- **🎯 4 Optimization Modes**:
+  - **Light**: Refines clarity while maintaining original length.
+  - **Optimized**: Balances compression and intent (default).
+  - **Aggressive**: Telegram-style compression for maximum token savings.
+  - **Symbolic**: Replaces common words with mathematical/logical symbols (`&`, `->`, `∀`).
+- **🔗 Auto-Send Integration**: Automatically focus and inject optimized prompts into other windows (e.g., Browser, VS Code, Discord).
+- **📜 Smart History**: Single-instance history window with search and chronological navigation.
+- **⚡ Real-time Diagnostics**: Live token counters and compression percentage tracking.
+- **🌐 Cross-Platform**: Native support for Linux, Windows, and macOS.
+- **🔄 Auto-Updates**: Startup check against GitHub releases with built-in changelog viewer.
 
+## 🛠️ Installation
+
+### 🐧 Linux (Recommended)
+The easiest way is to use the automated setup script:
 ```bash
-# Clone or download project
-cd TokenOptimizer
-
-# Install dependencies
-pip install --break-system-packages customtkinter ollama pyautogui pyperclip
-
-# Linux: install system dependencies (automatic)
 chmod +x setup.sh && ./setup.sh
-
-# Linux: install system dependencies (manual)
-sudo apt install xdotool xclip python3-tk
 ```
+This installs system dependencies (`xdotool`, `xclip`, `python3-tk`) and all Python requirements.
 
-## Usage
-
+### 🪟 Windows / 🍎 macOS
+1. Install [Ollama](https://ollama.com/).
+2. Install Python dependencies:
 ```bash
-python3 main.py
+pip install -r requirements.txt
 ```
 
-1. Select Ollama model
-2. Choose optimization mode:
-   - **Light**: Removes greetings/redundancies
-   - **Optimized**: Core meaning + key data
-   - **Aggressive**: Keywords only
-   - **Symbolic**: Mathematical notation + pre-encoder
-3. Write prompt, press Enter
-4. Toggle "Mostrar resultado" to show or auto-send
+## 📦 Compilation & Distribution
 
-## Symbolic Mappings
+### 🐧 Linux
+- **Standalone Binary**: `pyinstaller TokenOptimizer.spec`
+- **Debian Package**: `./build_deb.sh` (Creates a `.deb` with auto-dependency management)
+- **Portable AppImage**: `./build_appimage.sh`
 
-| Input | Output |
-|-------|--------|
-| and | & |
-| with | w/ |
-| for | -> |
-| then | => |
-| each | ∀ |
-| exists | ∃ |
-| for example | e.g. |
-| that is | i.e. |
+### 🪟 Windows
+Run the batch script on a Windows machine:
+```cmd
+compile_windows.bat
+```
 
-## Controls
+### 🍎 macOS
+Run the shell script on a Mac:
+```bash
+./compile_mac.sh
+```
 
-- **Ctrl++ / Ctrl+-**: Zoom
-- **Enter**: Optimize
-- **Up / Down**: History
-- **Mostrar resultado OFF**: Auto-send to destination
+## 📋 Requirements
 
-## Requirements
+- **Ollama**: Must be running locally (`ollama serve`).
+- **Python 3.8+**: If running from source.
+- **System Utils (Linux only)**: `xdotool` and `xclip` are required for window focus and clipboard features.
 
-- Python 3.8+
-- Ollama running locally
-- customtkinter, ollama, pyautogui, pyperclip
+## ⌨️ Controls & Shortcuts
 
-## License
+- **Enter**: Execute optimization.
+- **Ctrl + Up/Down**: Navigate prompt history.
+- **Ctrl + Plus/Minus**: Global UI zoom (font size).
+- **Click Version**: View changelog and check for updates.
 
-MIT
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+*Developed with ❤️ for the AI community.*
