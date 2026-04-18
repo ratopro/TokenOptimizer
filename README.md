@@ -1,74 +1,80 @@
 # 🚀 TokenOptimizer
 
-**TokenOptimizer** is a professional-grade desktop application designed to optimize and compress AI prompts using local models via **Ollama**. It features a high-density UI, symbolic pre-encoding, and seamless integration with other applications.
+**TokenOptimizer** is a professional-grade desktop application designed to optimize and compress AI prompts using local models via **Ollama**. It features a high-density UI, symbolic pre-encoding, dynamic multi-language support, and seamless integration with other applications.
 
-![TokenOptimizer Mockup](assets/readme_mockup.png)
+<p align="center">
+  <img src="assets/icon.png" width="128" alt="TokenOptimizer Icon">
+</p>
 
 ## ✨ Key Features
 
 - **🎯 4 Optimization Modes**:
-  - **Light**: Refines clarity while maintaining original length.
-  - **Optimized**: Balances compression and intent (default).
-  - **Aggressive**: Telegram-style compression for maximum token savings.
-  - **Symbolic**: Replaces common words with mathematical/logical symbols (`&`, `->`, `∀`).
-- **🔗 Auto-Send Integration**: Automatically focus and inject optimized prompts into other windows (e.g., Browser, VS Code, Discord).
-- **📜 Smart History**: Single-instance history window with search and chronological navigation.
-- **⚡ Real-time Diagnostics**: Live token counters and compression percentage tracking.
-- **🌐 Cross-Platform**: Native support for Linux, Windows, and macOS.
-- **🔄 Auto-Updates**: Startup check against GitHub releases with built-in changelog viewer.
-- **🌍 Global Localization**: Dynamic UI translation for EN, ES, FR, DE, IT, and PT.
+  - **Light**: Refines clarity and grammar while maintaining original length.
+  - **Optimized**: The perfect balance between compression and intent (recommended).
+  - **Aggressive**: Maximum token savings using compact, Telegram-style phrasing.
+  - **Symbolic**: Replaces common logical operators with mathematical symbols (`&`, `->`, `∀`, `∃`).
+- **🌐 Global Localization (i18n)**: 
+  - Entire application UI translates instantly between **English, Spanish, French, German, Italian, and Portuguese**.
+- **🔄 Intelligent Translation**:
+  - **Toggle OFF**: Output matches the current UI language.
+  - **Toggle ON**: Output is always translated to **English** (ideal for English-optimized LLMs).
+- **🔗 Auto-Send Integration**: Automatically focuses and injects optimized prompts into external windows (Browsers, IDEs, Discord, etc.).
+- **📜 Smart History**: Persistent history window with search functionality and chronological navigation via `Ctrl + Up/Down`.
+- **⚡ Real-time Diagnostics**: Live token counters and compression percentage tracking with high-contrast visual feedback.
+- **🔄 Auto-Updates**: Seamless version checking against GitHub releases with a built-in Changelog viewer.
+- **🌍 Cross-Platform**: Native look and feel on Linux, Windows, and macOS.
 
-## 🛠️ Installation
+## 🛠️ Installation & Setup
 
 ### 🐧 Linux (Recommended)
-The easiest way is to use the automated setup script:
+Use the automated setup script to install system dependencies (`xdotool`, `xclip`, `python3-tk`) and Python requirements:
 ```bash
 chmod +x setup.sh && ./setup.sh
 ```
-This installs system dependencies (`xdotool`, `xclip`, `python3-tk`) and all Python requirements.
 
 ### 🪟 Windows / 🍎 macOS
 1. Install [Ollama](https://ollama.com/).
-2. Install Python dependencies:
+2. Ensure Python 3.10+ is installed.
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## 📦 Compilation & Distribution
+## 📦 Build & Distribution
+
+TokenOptimizer includes specialized scripts to generate production-ready binaries:
 
 ### 🐧 Linux
-- **Standalone Binary**: `pyinstaller TokenOptimizer.spec`
-- **Debian Package**: `./build_deb.sh` (Creates a `.deb` with auto-dependency management)
-- **Portable AppImage**: `./build_appimage.sh`
+- **Debian Package**: `./build_deb.sh` (Generates a `.deb` with automatic dependency management).
+- **AppImage**: `./build_appimage.sh` (Generates a portable binary that works on any distribution).
+- **Standalone**: `pyinstaller TokenOptimizer.spec`
 
 ### 🪟 Windows
-Run the batch script on a Windows machine:
-```cmd
-compile_windows.bat
-```
+Run `compile_windows.bat` on a Windows machine to generate a portable `.exe`.
 
 ### 🍎 macOS
-Run the shell script on a Mac:
-```bash
-./compile_mac.sh
-```
-
-## 📋 Requirements
-
-- **Ollama**: Must be running locally (`ollama serve`).
-- **Python 3.8+**: If running from source.
-- **System Utils (Linux only)**: `xdotool` and `xclip` are required for window focus and clipboard features.
+Run `./compile_mac.sh` on a Mac to generate a `.app` bundle.
 
 ## ⌨️ Controls & Shortcuts
 
-- **Enter**: Execute optimization.
-- **Ctrl + Up/Down**: Navigate prompt history.
-- **Ctrl + Plus/Minus**: Global UI zoom (font size).
-- **Click Version**: View changelog and check for updates.
+| Action | Shortcut |
+|--------|----------|
+| **Optimize** | `Enter` (in prompt field) |
+| **New Line** | `Ctrl + Enter` |
+| **History Prev/Next** | `Ctrl + Up` / `Ctrl + Down` |
+| **Zoom In/Out** | `Ctrl + "+"` / `Ctrl + "-"` |
+| **Update Check** | Click version label (bottom-right) |
+| **Stay on Top** | Toggle 📌 button |
+
+## 📋 Technical Requirements
+
+- **Ollama**: Must be running locally (`ollama serve`).
+- **Python 3.10+**: For source execution.
+- **System Utilities (Linux)**: `xdotool` and `xclip` are required for the "Inject" and "Copy" features.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ---
-*Developed with ❤️ for the AI community.*
+*Developed with ❤️ for the AI community by Antigravity.*
