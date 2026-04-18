@@ -16,6 +16,7 @@
 - **⚡ Real-time Diagnostics**: Live token counters and compression percentage tracking.
 - **🌐 Cross-Platform**: Native support for Linux, Windows, and macOS.
 - **🔄 Auto-Updates**: Startup check against GitHub releases with built-in changelog viewer.
+- **🌍 Global Localization**: Dynamic UI translation for EN, ES, FR, DE, IT, and PT.
 
 ## 🛠️ Installation
 
