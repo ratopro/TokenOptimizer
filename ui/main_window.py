@@ -327,7 +327,7 @@ class TokenShrinkApp(ctk.CTk):
  
         self.lbl_lang = self._reg(ctk.CTkLabel(frame_foot, text="Language:"))
         self.lbl_lang.pack(side="left", padx=(10, 2))
-        self.combo_lang = self._reg(ctk.CTkComboBox(frame_foot, values=["EN", "ES", "FR", "DE", "IT", "PT", "ZH", "JA", "RU"], 
+        self.combo_lang = self._reg(ctk.CTkComboBox(frame_foot, values=["EN", "ES", "FR", "DE", "IT", "PT"], 
                                                    state="readonly", height=22, width=80, command=self._on_lang_change)) 
         self.combo_lang.pack(side="left", padx=2)
         self.combo_lang.set(self.config.get("idioma", "EN"))
