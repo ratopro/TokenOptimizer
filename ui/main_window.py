@@ -62,6 +62,7 @@ class TokenShrinkApp(ctk.CTk):
         self._siempre_visible = False
         self._tamano_texto = self.config.get("tamano_texto", 10)
         self._historial_window = None # <--- Referencia para instancia única
+        self._changelog_content = ""  # <--- Almacén para el changelog
 
         self._crear_interfaz()
         self.protocol("WM_DELETE_WINDOW", self._guardar_configuracion)
@@ -93,14 +94,37 @@ class TokenShrinkApp(ctk.CTk):
             api_url = f"https://api.github.com/repos/{repo}/releases/latest"
             response = requests.get(api_url, timeout=5)
             if response.status_code == 200:
-                latest = response.json().get("tag_name", "").replace("v", "")
+                data = response.json()
+                latest = data.get("tag_name", "").replace("v", "")
                 if latest and latest != CURRENT_VERSION:
+                    self._changelog_content = data.get("body", "No hay detalles disponibles.")
                     msg = f"¡Nueva versión disponible: v{latest}!"
                     self.label_st.configure(text=msg, text_color="orange")
-                    self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} (Update!)")
+                    self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} (¡Novedades!)")
                     print(f"[Update] Hay una nueva versión disponible en GitHub: v{latest}")
         except:
             pass # Silencioso si no hay red o falla API
+
+    def _mostrar_changelog(self):
+        if not self._changelog_content:
+            webbrowser.open(GITHUB_URL)
+            return
+
+        win = ctk.CTkToplevel(self)
+        win.title("¿Qué hay de nuevo?")
+        win.geometry("500x400")
+        win.attributes("-topmost", True)
+
+        lbl = ctk.CTkLabel(win, text="Notas de la versión", font=("Roboto", 16, "bold"))
+        lbl.pack(pady=10)
+
+        txt = ctk.CTkTextbox(win, wrap="word")
+        txt.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        txt.insert("1.0", self._changelog_content)
+        txt.configure(state="disabled") # Solo lectura
+
+        btn = ctk.CTkButton(win, text="Ir a GitHub", command=lambda: webbrowser.open(GITHUB_URL))
+        btn.pack(pady=(0, 15))
 
     def _reg(self, w):
         self._widgets_uniformes.append(w)
@@ -209,7 +233,7 @@ class TokenShrinkApp(ctk.CTk):
 
         self.label_ver = self._reg(ctk.CTkLabel(self, text=f"v{CURRENT_VERSION}", text_color="gray", cursor="hand2"))
         self.label_ver.grid(row=4, column=0, sticky="e", padx=5)
-        self.label_ver.bind("<Button-1>", lambda e: webbrowser.open(GITHUB_URL))
+        self.label_ver.bind("<Button-1>", lambda e: self._mostrar_changelog())
 
         # Bindings de Zoom
         self.bind_all("<Control-plus>", self._aumentar_texto)
