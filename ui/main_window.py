@@ -6,8 +6,13 @@ from utils.config import ConfigManager
 import threading
 import re
 
+import webbrowser
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
+
+CURRENT_VERSION = "1.1.0"
+GITHUB_URL = "https://github.com/ratopro/TokenOptimizer"
 
 class ToolTip:
     def __init__(self, widget, text):
@@ -61,6 +66,41 @@ class TokenShrinkApp(ctk.CTk):
         self._crear_interfaz()
         self.protocol("WM_DELETE_WINDOW", self._guardar_configuracion)
         self.after(100, self._cargar_datos_iniciales)
+        self.after(500, self._verificar_dependencias)
+        self.after(2000, lambda: threading.Thread(target=self._comprobar_actualizaciones, daemon=True).start())
+
+    def _verificar_dependencias(self):
+        if platform.system() == "Linux":
+            import subprocess
+            missing = []
+            for tool in ["xdotool", "xclip"]:
+                if subprocess.run(["which", tool], capture_output=True).returncode != 0:
+                    missing.append(tool)
+            
+            if missing:
+                pkgs = " ".join(missing)
+                cmd = f"sudo apt install {pkgs}"
+                msg = f"Faltan: {pkgs} | Ejecuta: {cmd}"
+                self.label_st.configure(text=msg, text_color="#e74c3c")
+                print(f"\n[!] DEPENDENCIAS FALTANTES DETECTADAS:")
+                print(f"Paquetes: {pkgs}")
+                print(f"Comando: {cmd}\n")
+
+    def _comprobar_actualizaciones(self):
+        try:
+            import requests
+            repo = "ratopro/TokenOptimizer"
+            api_url = f"https://api.github.com/repos/{repo}/releases/latest"
+            response = requests.get(api_url, timeout=5)
+            if response.status_code == 200:
+                latest = response.json().get("tag_name", "").replace("v", "")
+                if latest and latest != CURRENT_VERSION:
+                    msg = f"¡Nueva versión disponible: v{latest}!"
+                    self.label_st.configure(text=msg, text_color="orange")
+                    self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} (Update!)")
+                    print(f"[Update] Hay una nueva versión disponible en GitHub: v{latest}")
+        except:
+            pass # Silencioso si no hay red o falla API
 
     def _reg(self, w):
         self._widgets_uniformes.append(w)
@@ -167,8 +207,9 @@ class TokenShrinkApp(ctk.CTk):
         self.label_st = self._reg(ctk.CTkLabel(self, text="Listo", text_color="gray"))
         self.label_st.grid(row=4, column=0, sticky="w", padx=5)
 
-        self.label_ver = self._reg(ctk.CTkLabel(self, text="v1.1.0", text_color="gray"))
+        self.label_ver = self._reg(ctk.CTkLabel(self, text=f"v{CURRENT_VERSION}", text_color="gray", cursor="hand2"))
         self.label_ver.grid(row=4, column=0, sticky="e", padx=5)
+        self.label_ver.bind("<Button-1>", lambda e: webbrowser.open(GITHUB_URL))
 
         # Bindings de Zoom
         self.bind_all("<Control-plus>", self._aumentar_texto)
