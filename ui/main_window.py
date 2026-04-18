@@ -147,7 +147,7 @@ class TokenShrinkApp(ctk.CTk):
                 cmd = f"sudo apt install {pkgs}"
                 t = LOCALES.get(self.config.get("idioma", "EN"), LOCALES["EN"])
                 msg = f"{t['missing']} {pkgs} | {t['run']} {cmd}"
-                self.label_st.configure(text=msg, text_color="#e74c3c")
+                self._set_status(msg, "#e74c3c", expire=True)
                 print(f"\n[!] MISSING DEPENDENCIES DETECTED:")
                 print(f"Packages: {pkgs}")
                 print(f"Command: {cmd}\n")
@@ -178,6 +178,18 @@ class TokenShrinkApp(ctk.CTk):
         if self.combo_ventanas.get() in ["No apps", "Sin apps", "Aucune app", "Keine Apps"]:
             self.combo_ventanas.set(t["no_apps"])
 
+    def _set_status(self, text, color="gray", expire=True):
+        if hasattr(self, "_status_timer") and self._status_timer:
+            self.after_cancel(self._status_timer)
+            self._status_timer = None
+
+        self.label_st.configure(text=text, text_color=color)
+        
+        if expire:
+            t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
+            # Volver a "Ready" después de 10s
+            self._status_timer = self.after(10000, lambda: self.label_st.configure(text=t["ready"], text_color="gray"))
+
     def _comprobar_actualizaciones(self):
         try:
             import requests
@@ -191,7 +203,7 @@ class TokenShrinkApp(ctk.CTk):
                     self._changelog_content = data.get("body", "No details available.")
                     t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
                     msg = t["new_ver"].format(v=latest)
-                    self.label_st.configure(text=msg, text_color="orange")
+                    self._set_status(msg, "orange", expire=True)
                     self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} ({t['new']})")
                     print(f"[Update] New version available on GitHub: v{latest}")
         except:
@@ -372,6 +384,8 @@ class TokenShrinkApp(ctk.CTk):
         self._cargar_modelos()
         self._actualizar_listas()
         self._localizar_interfaz()
+        
+        self._status_timer = None # Para el gestor de estados
 
     def _on_lang_change(self, v):
         self.config.set("idioma", v)
@@ -424,7 +438,7 @@ class TokenShrinkApp(ctk.CTk):
         self._historial_idx = -1 # Resetear navegación
         self._ultimo_prompt = p
         t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-        self.label_st.configure(text=t["shrinking"], text_color="yellow")
+        self._set_status(t["shrinking"], "yellow", expire=False) # No expira mientras procesa
         
         # Si 'Translate' está activo, forzamos Inglés. Si no, usamos el idioma de la App.
         lang = "English" if self.sw_es.get() else self.combo_lang.get()
@@ -455,7 +469,7 @@ class TokenShrinkApp(ctk.CTk):
             t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
             self.label_comp.configure(text=f"{t['savings']} {c:.1f}%", text_color=color)
         t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-        self.label_st.configure(text=t["ready"], text_color="green")
+        self._set_status(t["ready"], "green", expire=True)
         if not self.sw_show.get(): self._enviar()
 
     def _copiar(self):
@@ -466,8 +480,8 @@ class TokenShrinkApp(ctk.CTk):
         t = self.text_salida.get("1.0", "end").strip()
         v = self.combo_ventanas.get()
         if t and v:
-            msg = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])["injecting"]
-            self.label_st.configure(text=msg, text_color="cyan")
+            msg_t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])["injecting"]
+            self._set_status(msg_t, "cyan", expire=True)
             self.window_manager.focus_window_by_title(v)
             # Delay para asegurar foco antes de inyectar
             self.after(300, lambda: self.automation.inject_text(t))
@@ -486,7 +500,7 @@ class TokenShrinkApp(ctk.CTk):
     def _abrir_historial(self):
         t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
         if not self._historial_prompts:
-            self.label_st.configure(text=t["empty"], text_color="orange")
+            self._set_status(t["empty"], "orange", expire=True)
             return
 
         # Si ya existe y es válida, traer al frente
