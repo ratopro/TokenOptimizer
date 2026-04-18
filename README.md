@@ -19,8 +19,11 @@ cd TokenOptimizer
 # Install dependencies
 pip install --break-system-packages customtkinter ollama pyautogui pyperclip
 
-# Linux: install xdotool
-sudo apt install xdotool
+# Linux: install system dependencies (automatic)
+chmod +x setup.sh && ./setup.sh
+
+# Linux: install system dependencies (manual)
+sudo apt install xdotool xclip python3-tk
 ```
 
 ## Usage
