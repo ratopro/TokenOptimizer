@@ -208,17 +208,18 @@ class TokenShrinkApp(ctk.CTk):
         self.sw_show = self._reg(ctk.CTkSwitch(frame_foot, text="Preview", height=18, width=36, command=self._toggle_mostrar))
         self.sw_show.select()
         self.sw_show.pack(side="left", padx=5)
+ 
+        self._reg(ctk.CTkLabel(frame_foot, text="Language:")).pack(side="left", padx=(10, 2))
+        self.combo_lang = self._reg(ctk.CTkComboBox(frame_foot, values=["EN", "ES", "FR", "DE", "IT", "PT", "ZH", "JA", "RU"], 
+                                                   state="readonly", height=22, width=80, command=self._on_lang_change)) 
+        self.combo_lang.pack(side="left", padx=5)
+        self.combo_lang.set(self.config.get("idioma", "EN"))
 
-        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="No Translate", height=18, width=36, command=self._toggle_idioma))
-        self.sw_es.deselect()
-        self.sw_es.pack(side="left", padx=5)
-
-        # Nota: Aunque el widget sea de 110px, forzamos el dropdown a ser más ancho después si la librería lo permite
-        # o simplemente usaremos un valor seguro que funcione en tu versión.
+        self._reg(ctk.CTkLabel(frame_foot, text="Method:")).pack(side="left", padx=(10, 2))
         self.combo_modo = self._reg(ctk.CTkComboBox(frame_foot, values=["Light", "Optimized", "Aggressive", "Symbolic"], 
                                                    state="readonly", height=22, width=125, command=self._on_modo_change)) 
         self.combo_modo.pack(side="left", padx=5)
-        self.combo_modo.set("Optimized")
+        self.combo_modo.set(self.config.get("modo", "Optimized"))
 
         # Contadores de Tokens
         f_stats = ctk.CTkFrame(frame_foot, fg_color="transparent")
@@ -263,6 +264,9 @@ class TokenShrinkApp(ctk.CTk):
         self._cargar_modelos()
         self._actualizar_listas()
         self.label_st.configure(text="Ready", text_color="gray")
+
+    def _on_lang_change(self, v):
+        self.config.set("idioma", v)
 
     def _cargar_modelos(self):
         self.modelos = self.ai_engine.get_available_models()
@@ -311,15 +315,12 @@ class TokenShrinkApp(ctk.CTk):
         self._historial_idx = -1 # Resetear navegación
         self._ultimo_prompt = p
         self.label_st.configure(text="Shrinking...", text_color="yellow")
-        self.ai_engine.optimize_prompt(p, self._on_complete, not self.sw_es.get(), self.combo_modo.get())
+        self.ai_engine.optimize_prompt(p, self._on_complete, self.combo_lang.get(), self.combo_modo.get())
 
     def _on_complete(self, dual, stats):
         import re
-        re_es = re.search(r"\[\[ES\]\](.*?)\[\[", dual + " [[", re.DOTALL)
-        re_en = re.search(r"\[\[EN\]\](.*?)$", dual, re.DOTALL)
-        self.res_es = re_es.group(1).strip() if re_es else dual
-        self.res_en = re_en.group(1).strip() if re_en else dual
-        res = self.res_es if self.sw_es.get() else self.res_en
+        re_res = re.search(r"\[\[RES\]\](.*?)$", dual, re.DOTALL)
+        res = re_res.group(1).strip() if re_res else dual
         self.text_salida.delete("1.0", "end")
         self.text_salida.insert("1.0", res)
         

@@ -21,7 +21,7 @@ class OllamaEngine:
             return [m for m in all_models if not any(kw in m.lower() for kw in exclude)]
         except: return []
 
-    def optimize_prompt(self, prompt: str, callback: Callable[[str, dict], None], traducir: bool = True, modo: str = "Optimized") -> threading.Thread:
+    def optimize_prompt(self, prompt: str, callback: Callable[[str, dict], None], traducir: str = "EN", modo: str = "Optimized") -> threading.Thread:
         if not self.current_model:
             callback("[Error] No model selected")
             return None
@@ -36,9 +36,10 @@ class OllamaEngine:
                 }.get(modo, "Balance conciseness and clarity, improve structure.")
 
                 system_prompt = (
-                    "You are an AI prompt engineer. MANDATORY: Generate TWO versions of the optimized prompt.\n"
+                    "You are an AI prompt engineer. MANDATORY: Generate the optimized prompt version.\n"
                     f"Task: {instruccion_modo}\n"
-                    "FORMAT: [[ES]] (Spanish version) [[EN]] (Technical abbreviated English version). No other text."
+                    f"Target Language: {traducir}\n"
+                    "FORMAT: [[RES]] (Optimized version). No other text."
                 )
 
                 # Proteger comillas
