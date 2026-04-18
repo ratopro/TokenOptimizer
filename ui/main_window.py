@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from core.ai_engine import OllamaEngine
+from core.ai_engine import OllamaEngine, BACKENDS
 from core.window_manager import WindowManager
 from core.automation import AutomationController
 from utils.config import ConfigManager
@@ -50,6 +50,7 @@ class TokenShrinkApp(ctk.CTk):
         self._historial_prompts = []
         self._indice_historial = -1
         self._siempre_visible = False
+        self._ventana_config = None # <--- AÑADIDO: Control de instancia única
         
         tamano_guardado = self.config.get("tamano_texto", 14)
         self._tamano_texto = tamano_guardado
@@ -68,36 +69,44 @@ class TokenShrinkApp(ctk.CTk):
         frame_config = ctk.CTkFrame(self)
         frame_config.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
+        frame_config.grid_columnconfigure(0, weight=0)
+        frame_config.grid_columnconfigure(1, weight=1)
+        frame_config.grid_columnconfigure(2, weight=0)
+        frame_config.grid_columnconfigure(3, weight=1)
+
         ctk.CTkLabel(frame_config, text="Modelo:").grid(row=0, column=0, padx=3)
         self.combo_modelos = ctk.CTkComboBox(frame_config, values=["Cargando..."], state="readonly", command=self._on_modelo_change, width=200)
-        self.combo_modelos.grid(row=0, column=1, padx=3)
+        self.combo_modelos.grid(row=0, column=1, padx=3, sticky="ew")
         ToolTip(self.combo_modelos, "Seleccionar modelo de IA")
 
         ctk.CTkLabel(frame_config, text="Destino:").grid(row=0, column=2, padx=3)
         
         self.combo_ventanas = ctk.CTkComboBox(frame_config, values=["Sin aplicaciones"], state="readonly", command=self._on_ventana_change, width=180)
-        self.combo_ventanas.grid(row=0, column=3, padx=2)
+        self.combo_ventanas.grid(row=0, column=3, padx=2, sticky="ew")
         ToolTip(self.combo_ventanas, "Seleccionar aplicación destino")
         
         self.combo_ventanas.bind("<Button-1>", self._abrir_combobox)
         
         self.combo_ventanas.bind("<Enter>", self._actualizar_ventanas_hover)
         
-        btn_actualizar = ctk.CTkButton(frame_config, text="↻", width=28, height=24, command=self._actualizar_listas)
-        btn_actualizar.grid(row=0, column=4, padx=1)
-        ToolTip(btn_actualizar, "Actualizar lista de ventanas")
+        frame_botones_derecha = ctk.CTkFrame(frame_config, fg_color="transparent")
+        frame_botones_derecha.grid(row=0, column=4, sticky="e", padx=2)
 
-        self.btn_siempre_visible = ctk.CTkButton(frame_config, text="📌", width=28, height=24, command=self._toggle_siempre_visible)
-        self.btn_siempre_visible.grid(row=0, column=5, padx=1)
+        btn_modelos = ctk.CTkButton(frame_botones_derecha, text="⚙️", width=28, height=24, command=self._abrir_config_modelos)
+        btn_modelos.pack(side="right", padx=2)
+        ToolTip(btn_modelos, "Configurar modelos por modo")
+
+        self.btn_siempre_visible = ctk.CTkButton(frame_botones_derecha, text="📌", width=28, height=24, command=self._toggle_siempre_visible)
+        self.btn_siempre_visible.pack(side="right", padx=1)
         ToolTip(self.btn_siempre_visible, "Mantener ventana siempre visible")
 
-        btn_limpiar = ctk.CTkButton(frame_config, text="🗑️", width=28, height=24, command=self._limpiar_prompts)
-        btn_limpiar.grid(row=0, column=6, padx=2)
+        btn_limpiar = ctk.CTkButton(frame_botones_derecha, text="🗑️", width=28, height=24, command=self._limpiar_prompts)
+        btn_limpiar.pack(side="right", padx=2)
         ToolTip(btn_limpiar, "Limpiar campos de texto")
 
-        btn_modelos = ctk.CTkButton(frame_config, text="⚙️", width=28, height=24, command=self._abrir_config_modelos)
-        btn_modelos.grid(row=0, column=7, padx=2)
-        ToolTip(btn_modelos, "Configurar modelos por modo")
+        btn_actualizar = ctk.CTkButton(frame_botones_derecha, text="↻", width=28, height=24, command=self._actualizar_listas)
+        btn_actualizar.pack(side="right", padx=1)
+        ToolTip(btn_actualizar, "Actualizar lista de ventanas")
 
         frame_entrada = ctk.CTkFrame(self)
         frame_entrada.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
@@ -156,7 +165,10 @@ class TokenShrinkApp(ctk.CTk):
         ToolTip(self.combo_modos, "Modo de optimización")
 
         self.label_estado = ctk.CTkLabel(self, text="Listo", text_color="gray")
-        self.label_estado.grid(row=4, column=0, pady=5)
+        self.label_estado.grid(row=4, column=0, sticky="w", pady=5, padx=10)
+
+        self.label_version = ctk.CTkLabel(self, text="v1.0.0", text_color="gray", font=("Roboto", 9))
+        self.label_version.grid(row=4, column=0, sticky="e", pady=5, padx=10)
 
         self._aplicar_tamano_texto()
         
@@ -200,29 +212,6 @@ class TokenShrinkApp(ctk.CTk):
     def _filtrar_ventanas(self, event=None):
         return "break"
 
-    def _detectar_ventana_activa(self):
-        import platform
-        import subprocess
-        
-        if platform.system() == "Linux":
-            try:
-                result = subprocess.run(["xdotool", "getactivewindow", "getwindowname"], 
-                                      capture_output=True, text=True)
-                ventana_activa = result.stdout.strip()
-                
-                self.btn_detectar.configure(text="❌")
-                
-                if ventana_activa and ventana_activa in self.ventanas:
-                    self.combo_ventanas.set(ventana_activa)
-                    self.label_estado.configure(text=f"Detectado: {ventana_activa}", text_color="cyan")
-                else:
-                    self.label_estado.configure(text="Ventana activa no encontrada", text_color="yellow")
-            except Exception as e:
-                self.label_estado.configure(text="Error detectando ventana", text_color="red")
-        else:
-            self.label_estado.configure(text="Solo disponible en Linux", text_color="yellow")
-        return "break"
-
     def _abrir_combobox(self, event=None):
         self._actualizar_listas()
         return
@@ -241,6 +230,14 @@ class TokenShrinkApp(ctk.CTk):
                 self.combo_ventanas.set(self.ventanas[0])
         self.label_estado.configure(text=f"Ventanas: {len(self.ventanas)}")
 
+    def _on_backend_change(self, backend: str):
+        self.ai_engine.set_backend(backend)
+        self.config.set("backend", backend)
+        self.label_estado.configure(text=f"Backend: {backend}", text_color="cyan")
+        # Reload models from the newly selected backend
+        self.combo_modelos.configure(values=["Cargando..."])
+        threading.Thread(target=self._cargar_modelos, daemon=True).start()
+
     def _on_modelo_change(self, choice):
         self.config.set("modelo", choice)
         self.ai_engine.set_model(choice)
@@ -249,8 +246,12 @@ class TokenShrinkApp(ctk.CTk):
         self.ai_engine.set_mode(mode)
         self.config.set("modo", mode)
         
-        modelo_asignado = self.config.get_modelo_by_mode(mode)
-        if modelo_asignado:
+        # Get the preferred backend and model for this mode
+        backend = self.config.get_backend_for_mode(mode)
+        modelo_asignado = self.config.get_modelo_by_mode(mode, backend)
+        
+        self.ai_engine.set_backend(backend)
+        if modelo_asignado and modelo_asignado in self.modelos:
             self.ai_engine.set_model(modelo_asignado)
             self.combo_modelos.set(modelo_asignado)
         
@@ -260,36 +261,147 @@ class TokenShrinkApp(ctk.CTk):
             self.label_estado.configure(text="Ready", text_color="gray")
 
     def _abrir_config_modelos(self):
-        ventana_config = ctk.CTkToplevel(self)
-        ventana_config.title("Configurar Modelos")
-        ventana_config.geometry("500x400")
-        
-        modos = ["Light", "Optimized", "Aggressive", "Symbolic"]
-        self._combos_modelos = {}
-        
-        for modo in modos:
-            frame_mode = ctk.CTkFrame(ventana_config)
-            frame_mode.pack(fill="x", padx=10, pady=5)
+        """Abre la ventana de configuración asegurando instancia única."""
+        if self._ventana_config is not None and self._ventana_config.winfo_exists():
+            self._ventana_config.focus()
+            self._ventana_config.deiconify()
+            return
+
+        self._ventana_config = ctk.CTkToplevel(self)
+        ventana_config = self._ventana_config
+        ventana_config.title("Configuración")
+        x = self.winfo_x() + self.winfo_width() + 8
+        y = self.winfo_y()
+        ventana_config.geometry(f"560x380+{x}+{y}")
+        ventana_config.resizable(False, False)
+
+        MODOS = ["Light", "Optimized", "Aggressive", "Symbolic"]
+        INVALID = ("—", "Loading...", "")
+        combos = {"Ollama": {}, "LM Studio": {}}
+        models_cache = {
+            "Ollama":    list(self.modelos) if self.ai_engine.get_backend() == "Ollama"    else [],
+            "LM Studio": list(self.modelos) if self.ai_engine.get_backend() == "LM Studio" else [],
+        }
+
+        # ── LM Studio URL ─────────────────────────────────────────────────────
+        entry_url_var = ctk.StringVar(value=self.config.get("lmstudio_url", "http://localhost:1234"))
+        frame_url = ctk.CTkFrame(ventana_config, fg_color="transparent")
+        frame_url.pack(fill="x", padx=12, pady=(12, 6))
+        ctk.CTkLabel(frame_url, text="LM Studio URL:").pack(side="left", padx=(0, 6))
+        ctk.CTkEntry(frame_url, textvariable=entry_url_var, width=300).pack(side="left")
+
+        # ── Column headers ────────────────────────────────────────────────────
+        frame_headers = ctk.CTkFrame(ventana_config, fg_color="transparent")
+        frame_headers.pack(fill="x", padx=12, pady=(4, 0))
+        ctk.CTkLabel(frame_headers, text="",        width=80).pack(side="left")
+        ctk.CTkLabel(frame_headers, text="Ollama",  width=210, anchor="center", font=("Roboto", 12, "bold")).pack(side="left", padx=4)
+        ctk.CTkLabel(frame_headers, text="LM Studio", width=210, anchor="center", font=("Roboto", 12, "bold")).pack(side="left", padx=4)
+
+        # ── Mode rows ─────────────────────────────────────────────────────────
+        frame_rows = ctk.CTkFrame(ventana_config)
+        frame_rows.pack(fill="x", padx=12, pady=4)
+
+        row_widgets = {}
+
+        def refresh_row_models(modo, backend):
+            models = models_cache[backend] or ["—"]
+            row_widgets[modo]['combo_modelo'].configure(values=models)
+            saved = self.config.get_modelo_by_mode(modo, backend)
+            if saved and saved in models:
+                row_widgets[modo]['combo_modelo'].set(saved)
+            elif models and models[0] != "—":
+                row_widgets[modo]['combo_modelo'].set(models[0])
+
+        for modo in MODOS:
+            row = ctk.CTkFrame(frame_rows, fg_color="transparent")
+            row.pack(fill="x", pady=4)
             
-            ctk.CTkLabel(frame_mode, text=modo, width=100).pack(side="left", padx=5)
+            ctk.CTkLabel(row, text=modo, width=80, anchor="w").pack(side="left")
             
-            combo = ctk.CTkComboBox(frame_mode, values=self.modelos, state="readonly", width=250)
-            modelo_actual = self.config.get_modelo_by_mode(modo)
-            if modelo_actual and modelo_actual in self.modelos:
-                combo.set(modelo_actual)
-            combo.pack(side="left", padx=5)
-            self._combos_modelos[modo] = combo
-        
-        def guardar_modelos():
-            for modo, combo in self._combos_modelos.items():
-                modelo = combo.get()
-                if modelo:
-                    self.config.set_modelo_by_mode(modo, modelo)
+            # Backend selector for this mode
+            vivos = [b for b in BACKENDS if models_cache[b]] or ["Ollama"]
+            saved_backend = self.config.get_backend_for_mode(modo)
+            if saved_backend not in vivos:
+                saved_backend = vivos[0]
+                
+            combo_backend = ctk.CTkComboBox(row, values=vivos, state="readonly", width=120,
+                                          command=lambda b, m=modo: refresh_row_models(m, b))
+            combo_backend.set(saved_backend)
+            combo_backend.pack(side="left", padx=6)
+            
+            # Model selector for this mode
+            models = models_cache[saved_backend] or ["Loading..."]
+            combo_modelo = ctk.CTkComboBox(row, values=models, state="readonly", width=200)
+            saved_model = self.config.get_modelo_by_mode(modo, saved_backend)
+            if saved_model and saved_model in models:
+                combo_modelo.set(saved_model)
+            combo_modelo.pack(side="left", padx=6)
+            
+            row_widgets[modo] = {
+                'combo_backend': combo_backend,
+                'combo_modelo': combo_modelo
+            }
+
+        # ── Async model fetch ─────────────────────────────────────────────────
+        def fetch_models(backend: str):
+            if backend == "LM Studio":
+                self.ai_engine.set_lmstudio_url(entry_url_var.get())
+                
+            prev = self.ai_engine.get_backend()
+            self.ai_engine.set_backend(backend)
+            models = self.ai_engine.get_available_models()
+            self.ai_engine.set_backend(prev)
+            models_cache[backend] = models
+            ventana_config.after(0, lambda b=backend: refresh_all_rows_for_backend(b))
+
+        def refresh_all_rows_for_backend(backend: str):
+            for modo in MODOS:
+                if row_widgets[modo]['combo_backend'].get() == backend:
+                    refresh_row_models(modo, backend)
+
+        for b in BACKENDS:
+            if not models_cache[b]:
+                threading.Thread(target=lambda bk=b: fetch_models(bk), daemon=True).start()
+
+        for b in BACKENDS:
+            if not models_cache[b]:
+                threading.Thread(target=lambda bk=b: fetch_models(bk), daemon=True).start()
+
+        # ── Save / Exit ─────────────────────────────────────────────────────────
+        def guardar_y_salir():
+            for modo in MODOS:
+                backend = row_widgets[modo]['combo_backend'].get()
+                model = row_widgets[modo]['combo_modelo'].get()
+                self.config.set_backend_for_mode(modo, backend)
+                self.config.set_modelo_by_mode(modo, model, backend)
+            
+            self.config.set("lmstudio_url", entry_url_var.get())
+            self.config.guardar()
+            
+            # Sync main model combo if the current mode was updated
+            current_mode = self.combo_modos.get()
+            current_backend = self.config.get_backend_for_mode(current_mode)
+            current_model = self.config.get_modelo_by_mode(current_mode, current_backend)
+            
+            self.ai_engine.set_backend(current_backend)
+            self.ai_engine.set_model(current_model)
+            self.combo_modelos.set(current_model)
+            
             ventana_config.destroy()
-            self.label_estado.configure(text="Modelos guardados", text_color="green")
-        
-        btn_guardar = ctk.CTkButton(ventana_config, text="Guardar", command=guardar_modelos)
-        btn_guardar.pack(pady=10)
+
+        def salir_sin_guardar():
+            ventana_config.destroy()
+
+        def al_cerrar():
+            self._ventana_config = None
+            ventana_config.destroy()
+
+        ventana_config.protocol("WM_DELETE_WINDOW", al_cerrar)
+
+        frame_save = ctk.CTkFrame(ventana_config, fg_color="transparent")
+        frame_save.pack(fill="x", padx=12, pady=(6, 12))
+        ctk.CTkButton(frame_save, text="Salir", width=120, command=salir_sin_guardar).pack(side="right", padx=6)
+        ctk.CTkButton(frame_save, text="Guardar", width=100, command=guardar_y_salir).pack(side="right")
 
     def _on_ventana_change(self, choice):
         self.config.set("ventana", choice)
@@ -600,7 +712,15 @@ class TokenShrinkApp(ctk.CTk):
         geo = self.config.get("geo")
         if geo:
             self.geometry(geo)
-        
+
+        # Backend
+        backend = self.config.get("backend", "Ollama")
+        self.ai_engine.set_backend(backend)
+
+        # LM Studio URL
+        lmstudio_url = self.config.get("lmstudio_url", "http://localhost:1234")
+        self.ai_engine.set_lmstudio_url(lmstudio_url)
+
         self._siempre_visible = self.config.get("siempre_visible", False)
         if self._siempre_visible:
             self.attributes("-topmost", True)
@@ -625,6 +745,7 @@ class TokenShrinkApp(ctk.CTk):
         self.config.set("siempre_visible", self._siempre_visible)
         self.config.set("mostrar_resultado", self.switch_mostrar.get())
         self.config.set("traducir", self.switch_traducir.get())
+        self.config.guardar()
         self.destroy()
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ darkdetect
 
 # IA y NLP
 ollama
+requests
 spacy
 
 # Automatización e Inyección

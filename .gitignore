@@ -5,3 +5,14 @@ __pycache__/
 .DS_Store
 *.egg-info/
 .pytest_cache/
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# Agent/IDE metadata
+.agents/
+.atl/
+.claude/
+skills-lock.json
