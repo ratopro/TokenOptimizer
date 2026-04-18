@@ -5,6 +5,7 @@ from core.automation import AutomationController
 from utils.config import ConfigManager
 import threading
 import re
+import platform
 
 import webbrowser
 
