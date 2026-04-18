@@ -209,8 +209,8 @@ class TokenShrinkApp(ctk.CTk):
         self.sw_show.select()
         self.sw_show.pack(side="left", padx=5)
 
-        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="Translate", height=18, width=36, command=self._toggle_idioma))
-        self.sw_es.select()
+        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="No Translate", height=18, width=36, command=self._toggle_idioma))
+        self.sw_es.deselect()
         self.sw_es.pack(side="left", padx=5)
 
         # Nota: Aunque el widget sea de 110px, forzamos el dropdown a ser más ancho después si la librería lo permite
@@ -311,7 +311,7 @@ class TokenShrinkApp(ctk.CTk):
         self._historial_idx = -1 # Resetear navegación
         self._ultimo_prompt = p
         self.label_st.configure(text="Shrinking...", text_color="yellow")
-        self.ai_engine.optimize_prompt(p, self._on_complete, self.sw_es.get(), self.combo_modo.get())
+        self.ai_engine.optimize_prompt(p, self._on_complete, not self.sw_es.get(), self.combo_modo.get())
 
     def _on_complete(self, dual, stats):
         import re
