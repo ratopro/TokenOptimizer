@@ -187,8 +187,8 @@ class TokenShrinkApp(ctk.CTk):
         
         if expire:
             t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-            # Volver a "Ready" después de 10s
-            self._status_timer = self.after(10000, lambda: self.label_st.configure(text=t["ready"], text_color="gray"))
+            # Volver a "Ready" después de 5s
+            self._status_timer = self.after(5000, lambda: self.label_st.configure(text=t["ready"], text_color="gray"))
 
     def _comprobar_actualizaciones(self):
         try:
