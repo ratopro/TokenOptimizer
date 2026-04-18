@@ -15,69 +15,6 @@ ctk.set_default_color_theme("blue")
 CURRENT_VERSION = "1.1.0"
 GITHUB_URL = "https://github.com/ratopro/TokenOptimizer"
 
-LOCALES = {
-    "EN": {
-        "model": "Model:", "target": "Target:", "no_apps": "No apps", "loading": "Loading...",
-        "source": "Source Prompt", "optimize": "Optimize", "savings": "Savings:",
-        "output": "Optimized Output", "copy": "Copy", "inject": "Inject", "preview": "Preview",
-        "translate": "Translate", "lang": "Language:", "method": "Method:", "ready": "Ready",
-        "booting": "Booting...", "shrinking": "Shrinking...", "injecting": "Injecting...",
-        "history": "Prompt History", "empty": "History Empty", "notes": "Release Notes",
-        "new": "What's New?", "github": "GitHub", "missing": "Missing:", "run": "Run:",
-        "new_ver": "New version available: v{v}!"
-    },
-    "ES": {
-        "model": "Modelo:", "target": "Destino:", "no_apps": "Sin apps", "loading": "Cargando...",
-        "source": "Prompt Original", "optimize": "Optimizar", "savings": "Ahorro:",
-        "output": "Resultado Optimizado", "copy": "Copiar", "inject": "Inyectar", "preview": "Vista Previa",
-        "translate": "Traducir", "lang": "Idioma:", "method": "Método:", "ready": "Listo",
-        "booting": "Iniciando...", "shrinking": "Optimizando...", "injecting": "Inyectando...",
-        "history": "Historial", "empty": "Historial vacío", "notes": "Notas de versión",
-        "new": "¿Qué hay de nuevo?", "github": "GitHub", "missing": "Faltan:", "run": "Ejecuta:",
-        "new_ver": "¡Nueva versión disponible: v{v}!"
-    },
-    "FR": {
-        "model": "Modèle:", "target": "Cible:", "no_apps": "Aucune app", "loading": "Chargement...",
-        "source": "Prompt Source", "optimize": "Optimiser", "savings": "Économie:",
-        "output": "Résultat Optimisé", "copy": "Copier", "inject": "Injecter", "preview": "Aperçu",
-        "translate": "Traduire", "lang": "Langue:", "method": "Méthode:", "ready": "Prêt",
-        "booting": "Démarrage...", "shrinking": "Optimisation...", "injecting": "Injection...",
-        "history": "Historique", "empty": "Historique vide", "notes": "Notes de version",
-        "new": "Quoi de neuf?", "github": "GitHub", "missing": "Manquant:", "run": "Exécuter:",
-        "new_ver": "Nouvelle version: v{v}!"
-    },
-    "DE": {
-        "model": "Modell:", "target": "Ziel:", "no_apps": "Keine Apps", "loading": "Laden...",
-        "source": "Quelltext", "optimize": "Optimieren", "savings": "Ersparnis:",
-        "output": "Optimierte Ausgabe", "copy": "Kopieren", "inject": "Einfügen", "preview": "Vorschau",
-        "translate": "Übersetzen", "lang": "Sprache:", "method": "Methode:", "ready": "Bereit",
-        "booting": "Starten...", "shrinking": "Optimierung...", "injecting": "Einfügen...",
-        "history": "Verlauf", "empty": "Verlauf leer", "notes": "Versionshinweise",
-        "new": "Was ist neu?", "github": "GitHub", "missing": "Fehlt:", "run": "Ausführen:",
-        "new_ver": "Neue Version: v{v}!"
-    },
-    "IT": {
-        "model": "Modello:", "target": "Destinazione:", "no_apps": "Nessuna app", "loading": "Caricamento...",
-        "source": "Prompt Originale", "optimize": "Ottimizza", "savings": "Risparmio:",
-        "output": "Risultato Ottimizzato", "copy": "Copia", "inject": "Iniettare", "preview": "Anteprima",
-        "translate": "Traduci", "lang": "Lingua:", "method": "Metodo:", "ready": "Pronto",
-        "booting": "Avvio...", "shrinking": "Ottimizzazione...", "injecting": "Iniezione...",
-        "history": "Cronologia", "empty": "Cronologia vuota", "notes": "Note di rilascio",
-        "new": "Novità?", "github": "GitHub", "missing": "Mancante:", "run": "Esegui:",
-        "new_ver": "Nuova versione: v{v}!"
-    },
-    "PT": {
-        "model": "Modelo:", "target": "Destino:", "no_apps": "Sem apps", "loading": "Carregando...",
-        "source": "Prompt Original", "optimize": "Otimizar", "savings": "Economia:",
-        "output": "Resultado Otimizado", "copy": "Copiar", "inject": "Injetar", "preview": "Visualizar",
-        "translate": "Traduzir", "lang": "Idioma:", "method": "Método:", "ready": "Pronto",
-        "booting": "Iniciando...", "shrinking": "Otimizando...", "injecting": "Injetando...",
-        "history": "Histórico", "empty": "Histórico vazio", "notes": "Notas de versão",
-        "new": "O que há de novo?", "github": "GitHub", "missing": "Faltando:", "run": "Executar:",
-        "new_ver": "Nova versão: v{v}!"
-    }
-}
-
 class ToolTip:
     def __init__(self, widget, text):
         self.widget = widget
@@ -145,38 +82,11 @@ class TokenShrinkApp(ctk.CTk):
             if missing:
                 pkgs = " ".join(missing)
                 cmd = f"sudo apt install {pkgs}"
-                t = LOCALES.get(self.config.get("idioma", "EN"), LOCALES["EN"])
-                msg = f"{t['missing']} {pkgs} | {t['run']} {cmd}"
+                msg = f"Missing: {pkgs} | Run: {cmd}"
                 self.label_st.configure(text=msg, text_color="#e74c3c")
                 print(f"\n[!] MISSING DEPENDENCIES DETECTED:")
                 print(f"Packages: {pkgs}")
                 print(f"Command: {cmd}\n")
-
-    def _localizar_interfaz(self):
-        ln = self.combo_lang.get()
-        # Fallback a EN si no existe traducción
-        t = LOCALES.get(ln, LOCALES["EN"])
-        
-        self.lbl_model.configure(text=t["model"])
-        self.lbl_target.configure(text=t["target"])
-        self.lbl_source.configure(text=t["source"])
-        self.lbl_output.configure(text=t["output"])
-        self.btn_opt.configure(text=t["optimize"])
-        self.btn_copy.configure(text=t["copy"])
-        self.btn_inject.configure(text=t["inject"])
-        self.sw_show.configure(text=t["preview"])
-        self.sw_es.configure(text=t["translate"])
-        self.lbl_lang.configure(text=t["lang"])
-        self.lbl_method.configure(text=t["method"])
-        
-        if hasattr(self, "label_st") and self.label_st.cget("text") in ["Ready", "Listo", "Prêt", "Bereit", "Pronto"]:
-            self.label_st.configure(text=t["ready"])
-
-        # Actualizar placeholders si están activos
-        if self.combo_modelos.get() in ["Loading...", "Cargando...", "Chargement...", "Laden..."]:
-            self.combo_modelos.set(t["loading"])
-        if self.combo_ventanas.get() in ["No apps", "Sin apps", "Aucune app", "Keine Apps"]:
-            self.combo_ventanas.set(t["no_apps"])
 
     def _comprobar_actualizaciones(self):
         try:
@@ -189,10 +99,9 @@ class TokenShrinkApp(ctk.CTk):
                 latest = data.get("tag_name", "").replace("v", "")
                 if latest and latest != CURRENT_VERSION:
                     self._changelog_content = data.get("body", "No details available.")
-                    t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-                    msg = t["new_ver"].format(v=latest)
+                    msg = f"New version available: v{latest}!"
                     self.label_st.configure(text=msg, text_color="orange")
-                    self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} ({t['new']})")
+                    self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} (What's New?)")
                     print(f"[Update] New version available on GitHub: v{latest}")
         except:
             pass # Silencioso si no hay red o falla API
@@ -203,12 +112,11 @@ class TokenShrinkApp(ctk.CTk):
             return
 
         win = ctk.CTkToplevel(self)
-        t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-        win.title(t["new"])
+        win.title("What's New?")
         win.geometry("500x400")
         win.attributes("-topmost", True)
 
-        lbl = ctk.CTkLabel(win, text=t["notes"], font=("Roboto", 16, "bold"))
+        lbl = ctk.CTkLabel(win, text="Release Notes", font=("Roboto", 16, "bold"))
         lbl.pack(pady=10)
 
         txt = ctk.CTkTextbox(win, wrap="word")
@@ -216,7 +124,7 @@ class TokenShrinkApp(ctk.CTk):
         txt.insert("1.0", self._changelog_content)
         txt.configure(state="disabled") # Solo lectura
 
-        btn = ctk.CTkButton(win, text=t["github"], command=lambda: webbrowser.open(GITHUB_URL))
+        btn = ctk.CTkButton(win, text="GitHub", command=lambda: webbrowser.open(GITHUB_URL))
         btn.pack(pady=(0, 15))
 
     def _reg(self, w):
@@ -309,17 +217,16 @@ class TokenShrinkApp(ctk.CTk):
         self.sw_show.select()
         self.sw_show.pack(side="left", padx=5)
 
-        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="Translate", height=18, width=36, command=self._toggle_idioma))
+        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="Translate", height=18, width=36))
         self.sw_es.select()
         self.sw_es.pack(side="left", padx=5)
- 
-        self.lbl_lang = self._reg(ctk.CTkLabel(frame_foot, text="Language:"))
-        self.lbl_lang.pack(side="left", padx=(10, 2))
+
+        self._reg(ctk.CTkLabel(frame_foot, text="Language:")).pack(side="left", padx=(10, 2))
         self.combo_lang = self._reg(ctk.CTkComboBox(frame_foot, values=["EN", "ES", "FR", "DE", "IT", "PT", "ZH", "JA", "RU"], 
                                                    state="readonly", height=22, width=80, command=self._on_lang_change)) 
         self.combo_lang.pack(side="left", padx=2)
         self.combo_lang.set(self.config.get("idioma", "EN"))
-
+ 
         self.lbl_method = self._reg(ctk.CTkLabel(frame_foot, text="Method:"))
         self.lbl_method.pack(side="left", padx=(10, 2))
         self.combo_modo = self._reg(ctk.CTkComboBox(frame_foot, values=["Light", "Optimized", "Aggressive", "Symbolic"], 
@@ -371,11 +278,10 @@ class TokenShrinkApp(ctk.CTk):
         
         self._cargar_modelos()
         self._actualizar_listas()
-        self._localizar_interfaz()
+        self.label_st.configure(text="Ready", text_color="gray")
 
     def _on_lang_change(self, v):
         self.config.set("idioma", v)
-        self._localizar_interfaz()
 
     def _cargar_modelos(self):
         self.modelos = self.ai_engine.get_available_models()
@@ -423,8 +329,7 @@ class TokenShrinkApp(ctk.CTk):
         
         self._historial_idx = -1 # Resetear navegación
         self._ultimo_prompt = p
-        t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-        self.label_st.configure(text=t["shrinking"], text_color="yellow")
+        self.label_st.configure(text="Shrinking...", text_color="yellow")
         lang = self.combo_lang.get() if self.sw_es.get() else "Same as Input"
         self.ai_engine.optimize_prompt(p, self._on_complete, lang, self.combo_modo.get())
 
@@ -450,10 +355,8 @@ class TokenShrinkApp(ctk.CTk):
             else:
                 c = 0
             color = "#2ecc71" if c >= 0 else "#e74c3c"
-            t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-            self.label_comp.configure(text=f"{t['savings']} {c:.1f}%", text_color=color)
-        t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-        self.label_st.configure(text=t["ready"], text_color="green")
+            self.label_comp.configure(text=f"Savings: {c:.1f}%", text_color=color)
+        self.label_st.configure(text="Ready", text_color="green")
         if not self.sw_show.get(): self._enviar()
 
     def _copiar(self):
@@ -464,8 +367,7 @@ class TokenShrinkApp(ctk.CTk):
         t = self.text_salida.get("1.0", "end").strip()
         v = self.combo_ventanas.get()
         if t and v:
-            msg = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])["injecting"]
-            self.label_st.configure(text=msg, text_color="cyan")
+            self.label_st.configure(text="Injecting...", text_color="cyan")
             self.window_manager.focus_window_by_title(v)
             # Delay para asegurar foco antes de inyectar
             self.after(300, lambda: self.automation.inject_text(t))
@@ -482,9 +384,8 @@ class TokenShrinkApp(ctk.CTk):
         self.btn_pin.configure(fg_color="blue" if self._siempre_visible else "gray")
 
     def _abrir_historial(self):
-        t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
         if not self._historial_prompts:
-            self.label_st.configure(text=t["empty"], text_color="orange")
+            self.label_st.configure(text="History Empty", text_color="orange")
             return
 
         # Si ya existe y es válida, traer al frente
@@ -495,8 +396,7 @@ class TokenShrinkApp(ctk.CTk):
 
         win = ctk.CTkToplevel(self)
         self._historial_window = win # <--- Guardar referencia
-        t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-        win.title(t["history"])
+        win.title("Prompt History")
         
         # Dimensiones persistentes para el historial
         w_h = self.config.get("historial_ancho", 600)
