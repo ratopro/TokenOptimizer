@@ -208,11 +208,15 @@ class TokenShrinkApp(ctk.CTk):
         self.sw_show = self._reg(ctk.CTkSwitch(frame_foot, text="Preview", height=18, width=36, command=self._toggle_mostrar))
         self.sw_show.select()
         self.sw_show.pack(side="left", padx=5)
+
+        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="Translate", height=18, width=36, command=self._toggle_idioma))
+        self.sw_es.select()
+        self.sw_es.pack(side="left", padx=5)
  
         self._reg(ctk.CTkLabel(frame_foot, text="Language:")).pack(side="left", padx=(10, 2))
         self.combo_lang = self._reg(ctk.CTkComboBox(frame_foot, values=["EN", "ES", "FR", "DE", "IT", "PT", "ZH", "JA", "RU"], 
                                                    state="readonly", height=22, width=80, command=self._on_lang_change)) 
-        self.combo_lang.pack(side="left", padx=5)
+        self.combo_lang.pack(side="left", padx=2)
         self.combo_lang.set(self.config.get("idioma", "EN"))
 
         self._reg(ctk.CTkLabel(frame_foot, text="Method:")).pack(side="left", padx=(10, 2))
@@ -255,11 +259,10 @@ class TokenShrinkApp(ctk.CTk):
             self.sw_show.deselect()
             self.frame_out.grid_remove()
         
-        if not self.config.get("traducir_es", True): 
+        if self.config.get("traducir_es", True): 
+            self.sw_es.select()
+        else:
             self.sw_es.deselect()
-        
-        modo = self.config.get("modo", "Optimized")
-        self.combo_modo.set(modo)
         
         self._cargar_modelos()
         self._actualizar_listas()
@@ -315,7 +318,8 @@ class TokenShrinkApp(ctk.CTk):
         self._historial_idx = -1 # Resetear navegación
         self._ultimo_prompt = p
         self.label_st.configure(text="Shrinking...", text_color="yellow")
-        self.ai_engine.optimize_prompt(p, self._on_complete, self.combo_lang.get(), self.combo_modo.get())
+        lang = self.combo_lang.get() if self.sw_es.get() else "Same as Input"
+        self.ai_engine.optimize_prompt(p, self._on_complete, lang, self.combo_modo.get())
 
     def _on_complete(self, dual, stats):
         import re
