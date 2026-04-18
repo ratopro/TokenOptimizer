@@ -35,23 +35,36 @@ class TokenShrinkApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Token Optimizer (Ollama Only)")
-        self.geometry("700x520")
+        self.config = ConfigManager()
+        
+        # Dimensiones persistentes
+        ancho = self.config.get("ancho", 620)
+        alto = self.config.get("alto", 460)
+        self.geometry(f"{ancho}x{alto}")
 
         self.ai_engine = OllamaEngine()
         self.window_manager = WindowManager()
         self.automation = AutomationController()
-        self.config = ConfigManager()
 
         self.modelos = []
         self.ventanas = []
         self.resultado_actual = ""
         self._ultimo_prompt = ""
+        self._historial_prompts = [] # <--- Lista para el historial
+        self._historial_idx = -1     # <--- Índice de navegación
+        self._draft_prompt = ""      # <--- Para guardar lo que el usuario estaba escribiendo
+        self._widgets_uniformes = [] # <--- Registro de todos los widgets para fuente global
         self._siempre_visible = False
-        self._tamano_texto = self.config.get("tamano_texto", 14)
+        self._tamano_texto = self.config.get("tamano_texto", 10)
+        self._historial_window = None # <--- Referencia para instancia única
 
         self._crear_interfaz()
         self.protocol("WM_DELETE_WINDOW", self._guardar_configuracion)
         self.after(100, self._cargar_datos_iniciales)
+
+    def _reg(self, w):
+        self._widgets_uniformes.append(w)
+        return w
 
     def _crear_interfaz(self):
         self.grid_columnconfigure(0, weight=1)
@@ -60,75 +73,113 @@ class TokenShrinkApp(ctk.CTk):
 
         # Barra Superior
         frame_top = ctk.CTkFrame(self)
-        frame_top.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
-        frame_top.grid_columnconfigure(1, weight=1)
-        frame_top.grid_columnconfigure(3, weight=1)
+        frame_top.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        frame_top.grid_columnconfigure(1, weight=1) 
+        frame_top.grid_columnconfigure(3, weight=1) 
 
-        ctk.CTkLabel(frame_top, text="Modelo:").grid(row=0, column=0, padx=5)
-        self.combo_modelos = ctk.CTkComboBox(frame_top, values=["Cargando..."], state="readonly", command=self._on_modelo_change)
-        self.combo_modelos.grid(row=0, column=1, padx=5, sticky="ew")
+        self._reg(ctk.CTkLabel(frame_top, text="Modelo:")).grid(row=0, column=0, padx=2)
+        self.combo_modelos = self._reg(ctk.CTkComboBox(frame_top, values=["Cargando..."], state="readonly", 
+                                                      command=self._on_modelo_change, height=24, 
+                                                      width=300)) 
+        self.combo_modelos.grid(row=0, column=1, padx=2, sticky="ew")
 
-        ctk.CTkLabel(frame_top, text="Destino:").grid(row=0, column=2, padx=5)
-        self.combo_ventanas = ctk.CTkComboBox(frame_top, values=["Sin apps"], state="readonly", command=self._on_ventana_change)
-        self.combo_ventanas.grid(row=0, column=3, padx=5, sticky="ew")
+        self._reg(ctk.CTkLabel(frame_top, text="Destino:")).grid(row=0, column=2, padx=2)
+        self.combo_ventanas = self._reg(ctk.CTkComboBox(frame_top, values=["Sin apps"], state="readonly", 
+                                                       command=self._on_ventana_change, height=24, 
+                                                       width=300)) 
+        self.combo_ventanas.grid(row=0, column=3, padx=2, sticky="ew")
         
         frame_btns = ctk.CTkFrame(frame_top, fg_color="transparent")
-        frame_btns.grid(row=0, column=4, padx=5)
-        self.btn_pin = ctk.CTkButton(frame_btns, text="📌", width=30, command=self._toggle_siempre_visible)
-        self.btn_pin.pack(side="left", padx=2)
-        ctk.CTkButton(frame_btns, text="🗑️", width=30, command=self._limpiar).pack(side="left", padx=2)
-        ctk.CTkButton(frame_btns, text="↻", width=30, command=self._actualizar_listas).pack(side="left", padx=2)
+        frame_btns.grid(row=0, column=4, padx=2)
+        self._reg(ctk.CTkButton(frame_btns, text="↻", width=24, height=24, command=self._actualizar_listas)).pack(side="left", padx=1)
+        self._reg(ctk.CTkButton(frame_btns, text="🗑️", width=24, height=24, command=self._limpiar)).pack(side="left", padx=1)
+        self.btn_pin = self._reg(ctk.CTkButton(frame_btns, text="📌", width=24, height=24, command=self._toggle_siempre_visible))
+        self.btn_pin.pack(side="left", padx=1)
 
-        # Entrada
+        # Entrada (Ocupa peso vertical)
         frame_in = ctk.CTkFrame(self)
-        frame_in.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
-        ctk.CTkLabel(frame_in, text="Prompt Original").pack(pady=2)
-        self.text_entrada = ctk.CTkTextbox(frame_in, height=100)
-        self.text_entrada.pack(fill="both", expand=True, padx=5, pady=2)
+        frame_in.grid(row=1, column=0, sticky="nsew", padx=5, pady=2)
         
-        # Atajos de teclado para optimización rápida
+        f_in_label = ctk.CTkFrame(frame_in, fg_color="transparent")
+        f_in_label.pack(fill="x", pady=1)
+        self._reg(ctk.CTkLabel(f_in_label, text="Prompt Original")).pack(side="left", padx=5)
+        self._reg(ctk.CTkButton(f_in_label, text="📜", width=24, height=20, command=self._abrir_historial)).pack(side="right", padx=2)
+        
+        # Controles inferiores primero para que no desaparezcan
+        self._reg(ctk.CTkButton(frame_in, text="Optimizar", height=24, command=self._ejecutar)).pack(side="bottom", pady=2)
+        self.label_comp = self._reg(ctk.CTkLabel(frame_in, text="Compresión: -", text_color="gray"))
+        self.label_comp.pack(side="bottom", pady=0)
+
+        self.text_entrada = ctk.CTkTextbox(frame_in) 
+        self.text_entrada.pack(fill="both", expand=True, padx=2, pady=1)
+        self.text_entrada.bind("<KeyRelease>", self._update_in_count)
+        
+        # Bindings restaurados
         self.text_entrada.bind("<Return>", lambda e: (self._ejecutar(), "break")[1])
         self.text_entrada.bind("<KP_Enter>", lambda e: (self._ejecutar(), "break")[1])
-        
-        # Ctrl+Intro para saltos de línea manuales
         self.text_entrada.bind("<Control-Return>", lambda e: self.text_entrada.insert("insert", "\n"))
         self.text_entrada.bind("<Control-KP_Enter>", lambda e: self.text_entrada.insert("insert", "\n"))
+        self.text_entrada.bind("<Control-Up>", self._historial_anterior)
+        self.text_entrada.bind("<Control-Down>", self._historial_siguiente)
         
-        self.label_comp = ctk.CTkLabel(frame_in, text="Compresión: -", text_color="gray")
-        self.label_comp.pack(pady=2)
-        ctk.CTkButton(frame_in, text="Optimizar", command=self._ejecutar).pack(pady=5)
-
-        # Salida
+        # Salida (Ocupa peso vertical)
         frame_out = ctk.CTkFrame(self)
-        frame_out.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
+        frame_out.grid(row=2, column=0, sticky="nsew", padx=5, pady=2)
         self.frame_out = frame_out
-        ctk.CTkLabel(frame_out, text="Prompt Optimizado").pack(pady=2)
-        self.text_salida = ctk.CTkTextbox(frame_out, height=100)
-        self.text_salida.pack(fill="both", expand=True, padx=5, pady=2)
+        self._reg(ctk.CTkLabel(frame_out, text="Prompt Optimizado")).pack(pady=1)
+        
+        # Botones primero en el fondo para que no desaparezcan
+        f_btns_out = ctk.CTkFrame(frame_out, fg_color="transparent")
+        f_btns_out.pack(side="bottom", pady=2)
+        self._reg(ctk.CTkButton(f_btns_out, text="Copiar", width=60, height=22, command=self._copiar)).pack(side="left", padx=2)
+        self._reg(ctk.CTkButton(f_btns_out, text="Enviar", width=60, height=22, command=self._enviar)).pack(side="left", padx=2)
 
-        f_btns_out = ctk.CTkFrame(frame_out)
-        f_btns_out.pack(pady=5)
-        ctk.CTkButton(f_btns_out, text="Copiar", width=80, command=self._copiar).pack(side="left", padx=5)
-        ctk.CTkButton(f_btns_out, text="Enviar", width=80, command=self._enviar).pack(side="left", padx=5)
+        self.text_salida = ctk.CTkTextbox(frame_out) 
+        self.text_salida.pack(fill="both", expand=True, padx=2, pady=1)
 
         # Footer
         frame_foot = ctk.CTkFrame(self)
-        frame_foot.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
+        frame_foot.grid(row=3, column=0, sticky="ew", padx=5, pady=2)
         
-        self.sw_show = ctk.CTkSwitch(frame_foot, text="Mostrar", command=self._toggle_mostrar)
+        self.sw_show = self._reg(ctk.CTkSwitch(frame_foot, text="Mostrar", height=18, width=36, command=self._toggle_mostrar))
         self.sw_show.select()
-        self.sw_show.pack(side="left", padx=10)
+        self.sw_show.pack(side="left", padx=5)
 
-        self.sw_es = ctk.CTkSwitch(frame_foot, text="Traducir a ES", command=self._toggle_idioma)
+        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="Traducir a ES", height=18, width=36, command=self._toggle_idioma))
         self.sw_es.select()
-        self.sw_es.pack(side="left", padx=10)
+        self.sw_es.pack(side="left", padx=5)
 
-        self.combo_modo = ctk.CTkComboBox(frame_foot, values=["Light", "Optimized", "Aggressive", "Symbolic"], state="readonly", command=self._on_modo_change)
-        self.combo_modo.pack(side="left", padx=10)
+        # Nota: Aunque el widget sea de 110px, forzamos el dropdown a ser más ancho después si la librería lo permite
+        # o simplemente usaremos un valor seguro que funcione en tu versión.
+        self.combo_modo = self._reg(ctk.CTkComboBox(frame_foot, values=["Light", "Optimized", "Aggressive", "Symbolic"], 
+                                                   state="readonly", height=22, width=125, command=self._on_modo_change)) 
+        self.combo_modo.pack(side="left", padx=5)
         self.combo_modo.set("Optimized")
 
-        self.label_st = ctk.CTkLabel(self, text="Listo", text_color="gray")
-        self.label_st.grid(row=4, column=0, sticky="w", padx=10)
+        # Contadores de Tokens
+        f_stats = ctk.CTkFrame(frame_foot, fg_color="transparent")
+        f_stats.pack(side="right", padx=10)
+        self.lbl_t_in = self._reg(ctk.CTkLabel(f_stats, text="In: 0", text_color="cyan", font=("Roboto", self._tamano_texto, "bold")))
+        self.lbl_t_in.pack(side="left", padx=5)
+        self.lbl_t_out = self._reg(ctk.CTkLabel(f_stats, text="Out: 0", text_color="green", font=("Roboto", self._tamano_texto, "bold")))
+        self.lbl_t_out.pack(side="left", padx=5)
+
+        self.label_st = self._reg(ctk.CTkLabel(self, text="Listo", text_color="gray"))
+        self.label_st.grid(row=4, column=0, sticky="w", padx=5)
+
+        self.label_ver = self._reg(ctk.CTkLabel(self, text="v1.1.0", text_color="gray"))
+        self.label_ver.grid(row=4, column=0, sticky="e", padx=5)
+
+        # Bindings de Zoom
+        self.bind_all("<Control-plus>", self._aumentar_texto)
+        self.bind_all("<Control-KP_Add>", self._aumentar_texto)
+        self.bind_all("<Control-equal>", self._aumentar_texto)
+        self.bind_all("<Control-minus>", self._disminuir_texto)
+        self.bind_all("<Control-KP_Subtract>", self._disminuir_texto)
+        self.bind_all("<Control-underscore>", self._disminuir_texto)
+        
+        # Aplicar fuente inicial
+        self._aplicar_fuente()
 
     def _cargar_datos_iniciales(self):
         self.label_st.configure(text="Cargando sesión...", text_color="yellow")
@@ -184,11 +235,20 @@ class TokenShrinkApp(ctk.CTk):
     def _ejecutar(self):
         p = self.text_entrada.get("1.0", "end").strip()
         if not p: return
+        
+        # Guardar en historial si es nuevo
+        if not self._historial_prompts or self._historial_prompts[0]["prompt"] != p:
+            from datetime import datetime
+            ts = datetime.now().strftime("%H:%M")
+            self._historial_prompts.insert(0, {"ts": ts, "prompt": p})
+            if len(self._historial_prompts) > 50: self._historial_prompts.pop()
+        
+        self._historial_idx = -1 # Resetear navegación
         self._ultimo_prompt = p
         self.label_st.configure(text="Optimizando...", text_color="yellow")
         self.ai_engine.optimize_prompt(p, self._on_complete, self.sw_es.get(), self.combo_modo.get())
 
-    def _on_complete(self, dual):
+    def _on_complete(self, dual, stats):
         import re
         re_es = re.search(r"\[\[ES\]\](.*?)\[\[", dual + " [[", re.DOTALL)
         re_en = re.search(r"\[\[EN\]\](.*?)$", dual, re.DOTALL)
@@ -197,9 +257,23 @@ class TokenShrinkApp(ctk.CTk):
         res = self.res_es if self.sw_es.get() else self.res_en
         self.text_salida.delete("1.0", "end")
         self.text_salida.insert("1.0", res)
+        
+        # Actualizar contadores
+        self.lbl_t_in.configure(text=f"In: {stats['in']}")
+        
+        # Calcular tokens de salida reales del texto seleccionado (estimación precisa)
+        out_tokens = len(res) // 4 if len(res) > 0 else 0
+        self.lbl_t_out.configure(text=f"Out: {out_tokens}")
+
         if self._ultimo_prompt:
-            c = ((len(self._ultimo_prompt) - len(res)) / len(self._ultimo_prompt)) * 100
-            self.label_comp.configure(text=f"Compresión: {c:.1f}%")
+            # Compresión basada en tokens reales (estimados para ambos para consistencia)
+            in_est = len(self._ultimo_prompt) // 4
+            if in_est > 0:
+                c = ((in_est - out_tokens) / in_est) * 100
+            else:
+                c = 0
+            color = "#2ecc71" if c >= 0 else "#e74c3c"
+            self.label_comp.configure(text=f"Compresión: {c:.1f}%", text_color=color)
         self.label_st.configure(text="Listo", text_color="green")
         if not self.sw_show.get(): self._enviar()
 
@@ -211,9 +285,11 @@ class TokenShrinkApp(ctk.CTk):
         t = self.text_salida.get("1.0", "end").strip()
         v = self.combo_ventanas.get()
         if t and v:
+            self.label_st.configure(text="Enviando...", text_color="cyan")
             self.window_manager.focus_window_by_title(v)
-            import time
+            # Delay para asegurar foco antes de inyectar
             self.after(300, lambda: self.automation.inject_text(t))
+            self.after(400, self._limpiar) # <--- Limpieza automática tras el envío
 
     def _toggle_mostrar(self):
         self.config.set("mostrar_resultado", self.sw_show.get())
@@ -225,11 +301,103 @@ class TokenShrinkApp(ctk.CTk):
         self.attributes("-topmost", self._siempre_visible)
         self.btn_pin.configure(fg_color="blue" if self._siempre_visible else "gray")
 
+    def _abrir_historial(self):
+        if not self._historial_prompts:
+            self.label_st.configure(text="Historial vacío", text_color="orange")
+            return
+
+        # Si ya existe y es válida, traer al frente
+        if self._historial_window is not None and self._historial_window.winfo_exists():
+            self._historial_window.deiconify()
+            self._historial_window.focus()
+            return
+
+        win = ctk.CTkToplevel(self)
+        self._historial_window = win # <--- Guardar referencia
+        win.title("Historial de Prompts")
+        
+        # Dimensiones persistentes para el historial
+        w_h = self.config.get("historial_ancho", 600)
+        h_h = self.config.get("historial_alto", 400)
+        win.geometry(f"{w_h}x{h_h}")
+        win.attributes("-topmost", True)
+
+        # Capturar dimensiones al cerrar el historial
+        def on_close_hist():
+            self.config.set("historial_ancho", win.winfo_width())
+            self.config.set("historial_alto", win.winfo_height())
+            self._historial_window = None # <--- Limpiar referencia
+            win.destroy()
+        win.protocol("WM_DELETE_WINDOW", on_close_hist)
+
+        scroll = ctk.CTkScrollableFrame(win)
+        scroll.pack(fill="both", expand=True, padx=10, pady=10)
+
+        def cargar(txt):
+            self.text_entrada.delete("1.0", "end")
+            self.text_entrada.insert("1.0", txt)
+            self._historial_window = None # <--- Limpiar referencia
+            win.destroy()
+
+        for i, h in enumerate(self._historial_prompts):
+            # Contenedor para cada entrada para permitir interactividad
+            f_entry = ctk.CTkFrame(scroll, fg_color="transparent")
+            f_entry.pack(fill="x", pady=1)
+            
+            # Sello de tiempo destacado
+            lbl_ts = ctk.CTkLabel(f_entry, text=f"[{h['ts']}]", text_color="cyan", font=("Roboto", self._tamano_texto, "bold"))
+            lbl_ts.pack(side="left", anchor="n", padx=(5, 2))
+            
+            # Prompt con ajuste de línea (wraplength dinámico basado en ancho de ventana)
+            # Usamos un ancho fijo de referencia que se expandirá
+            lbl_p = ctk.CTkLabel(f_entry, text=h['prompt'], anchor="w", justify="left",
+                                 text_color="gray80", font=("Roboto", self._tamano_texto),
+                                 wraplength=550) # Ajustado al ancho inicial de la ventana
+            lbl_p.pack(fill="x", expand=True, padx=2, pady=2)
+            
+            # Hacer que toda la entrada sea clickable
+            def cargar_y_cerrar(txt=h['prompt']): cargar(txt)
+            f_entry.bind("<Button-1>", lambda e, t=h['prompt']: cargar_y_cerrar(t))
+            lbl_p.bind("<Button-1>", lambda e, t=h['prompt']: cargar_y_cerrar(t))
+            lbl_ts.bind("<Button-1>", lambda e, t=h['prompt']: cargar_y_cerrar(t))
+
+            # Añadir divisor
+            if i < len(self._historial_prompts) - 1:
+                ctk.CTkFrame(scroll, height=1, fg_color="gray30").pack(fill="x", padx=10, pady=2)
+
     def _limpiar(self):
         self.text_entrada.delete("1.0", "end")
         self.text_salida.delete("1.0", "end")
+        self.text_entrada.focus_set()
+
+    def _historial_anterior(self, e=None):
+        if not self._historial_prompts: return "break"
+        
+        # Guardar borrador si empezamos a navegar
+        if self._historial_idx == -1:
+            self._draft_prompt = self.text_entrada.get("1.0", "end").strip()
+            
+        if self._historial_idx < len(self._historial_prompts) - 1:
+            self._historial_idx += 1
+            self.text_entrada.delete("1.0", "end")
+            self.text_entrada.insert("1.0", self._historial_prompts[self._historial_idx]["prompt"])
+        return "break"
+
+    def _historial_siguiente(self, e=None):
+        if self._historial_idx == -1: return "break"
+        
+        self._historial_idx -= 1
+        self.text_entrada.delete("1.0", "end")
+        
+        if self._historial_idx == -1:
+            self.text_entrada.insert("1.0", self._draft_prompt)
+        else:
+            self.text_entrada.insert("1.0", self._historial_prompts[self._historial_idx]["prompt"])
+        return "break"
 
     def _guardar_configuracion(self):
+        self.config.set("ancho", self.winfo_width())
+        self.config.set("alto", self.winfo_height())
         self.config.set("tamano_texto", self._tamano_texto)
         self.config.guardar()
         self.destroy()
@@ -244,9 +412,34 @@ class TokenShrinkApp(ctk.CTk):
             self._aplicar_fuente()
 
     def _aplicar_fuente(self):
+        # Fuente única para toda la aplicación
         f = ("Roboto", self._tamano_texto)
+        
+        # Aplicar a TextBoxes directamente
         self.text_entrada.configure(font=f)
         self.text_salida.configure(font=f)
+        
+        # Aplicar a etiquetas de tokens y estado
+        self.lbl_t_in.configure(font=f)
+        self.lbl_t_out.configure(font=f)
+        self.label_st.configure(font=f)
+        self.label_comp.configure(font=f)
+        
+        # Aplicar a todos los widgets registrados (Labels, Buttons, Combos, Switches)
+        for w in self._widgets_uniformes:
+            try:
+                if isinstance(w, ctk.CTkComboBox):
+                    w.configure(font=f, dropdown_font=f)
+                else:
+                    w.configure(font=f)
+            except:
+                pass
+
+    def _update_in_count(self, e=None):
+        txt = self.text_entrada.get("1.0", "end-1c")
+        # Estimación simple: 4 caracteres por token
+        tokens = len(txt) // 4
+        self.lbl_t_in.configure(text=f"In: {tokens}")
 
 if __name__ == "__main__":
     app = TokenShrinkApp()

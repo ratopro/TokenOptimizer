@@ -9,8 +9,11 @@ class WindowManager:
     def get_active_windows(self) -> List[str]:
         try:
             if self.os_type == "Windows":
-                import pygetwindow as gw
-                return [w.title for w in gw.getAllWindows() if w.title != ""]
+                try:
+                    import pygetwindow as gw
+                    return [w.title for w in gw.getAllWindows() if w.title != ""]
+                except ImportError:
+                    return ["Error: pygetwindow not installed"]
             
             elif self.os_type == "Darwin":
                 script = 'tell application "System Events" to get name of every process whose background only is false'
@@ -50,11 +53,14 @@ class WindowManager:
     def focus_window_by_title(self, title_substring: str) -> bool:
         try:
             if self.os_type == "Windows":
-                import pygetwindow as gw
-                for window in gw.getAllWindows():
-                    if title_substring.lower() in window.title.lower():
-                        window.activate()
-                        return True
+                try:
+                    import pygetwindow as gw
+                    for window in gw.getAllWindows():
+                        if title_substring.lower() in window.title.lower():
+                            window.activate()
+                            return True
+                except ImportError:
+                    pass
                 return False
 
             elif self.os_type == "Linux":

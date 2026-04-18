@@ -21,7 +21,7 @@ class OllamaEngine:
             return [m for m in all_models if not any(kw in m.lower() for kw in exclude)]
         except: return []
 
-    def optimize_prompt(self, prompt: str, callback: Callable[[str], None], traducir: bool = True, modo: str = "Optimized") -> threading.Thread:
+    def optimize_prompt(self, prompt: str, callback: Callable[[str, dict], None], traducir: bool = True, modo: str = "Optimized") -> threading.Thread:
         if not self.current_model:
             callback("[Error] No model selected")
             return None
@@ -58,9 +58,15 @@ class OllamaEngine:
                 for i, q in enumerate(original_quotes):
                     optimized = optimized.replace(f"[[Q{i}]]", q)
                 
-                callback(optimized)
+                # Extraer estadísticas de tokens si están disponibles
+                stats = {
+                    "in": response.get('prompt_eval_count', 0),
+                    "out": response.get('eval_count', 0)
+                }
+                
+                callback(optimized, stats)
             except Exception as e:
-                callback(f"[Error] Generation failed: {str(e)}")
+                callback(f"[Error] Generation failed: {str(e)}", {"in": 0, "out": 0})
 
         thread = threading.Thread(target=task, daemon=True)
         thread.start()
