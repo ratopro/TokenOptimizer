@@ -39,7 +39,7 @@ class ToolTip:
 class TokenShrinkApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Token Optimizer (Ollama Only)")
+        self.title("Token Optimizer")
         self.config = ConfigManager()
         
         # Dimensiones persistentes
@@ -81,11 +81,11 @@ class TokenShrinkApp(ctk.CTk):
             if missing:
                 pkgs = " ".join(missing)
                 cmd = f"sudo apt install {pkgs}"
-                msg = f"Faltan: {pkgs} | Ejecuta: {cmd}"
+                msg = f"Missing: {pkgs} | Run: {cmd}"
                 self.label_st.configure(text=msg, text_color="#e74c3c")
-                print(f"\n[!] DEPENDENCIAS FALTANTES DETECTADAS:")
-                print(f"Paquetes: {pkgs}")
-                print(f"Comando: {cmd}\n")
+                print(f"\n[!] MISSING DEPENDENCIES DETECTED:")
+                print(f"Packages: {pkgs}")
+                print(f"Command: {cmd}\n")
 
     def _comprobar_actualizaciones(self):
         try:
@@ -97,11 +97,11 @@ class TokenShrinkApp(ctk.CTk):
                 data = response.json()
                 latest = data.get("tag_name", "").replace("v", "")
                 if latest and latest != CURRENT_VERSION:
-                    self._changelog_content = data.get("body", "No hay detalles disponibles.")
-                    msg = f"¡Nueva versión disponible: v{latest}!"
+                    self._changelog_content = data.get("body", "No details available.")
+                    msg = f"New version available: v{latest}!"
                     self.label_st.configure(text=msg, text_color="orange")
-                    self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} (¡Novedades!)")
-                    print(f"[Update] Hay una nueva versión disponible en GitHub: v{latest}")
+                    self.label_ver.configure(text_color="orange", text=f"v{CURRENT_VERSION} (What's New?)")
+                    print(f"[Update] New version available on GitHub: v{latest}")
         except:
             pass # Silencioso si no hay red o falla API
 
@@ -111,11 +111,11 @@ class TokenShrinkApp(ctk.CTk):
             return
 
         win = ctk.CTkToplevel(self)
-        win.title("¿Qué hay de nuevo?")
+        win.title("What's New?")
         win.geometry("500x400")
         win.attributes("-topmost", True)
 
-        lbl = ctk.CTkLabel(win, text="Notas de la versión", font=("Roboto", 16, "bold"))
+        lbl = ctk.CTkLabel(win, text="Release Notes", font=("Roboto", 16, "bold"))
         lbl.pack(pady=10)
 
         txt = ctk.CTkTextbox(win, wrap="word")
@@ -123,7 +123,7 @@ class TokenShrinkApp(ctk.CTk):
         txt.insert("1.0", self._changelog_content)
         txt.configure(state="disabled") # Solo lectura
 
-        btn = ctk.CTkButton(win, text="Ir a GitHub", command=lambda: webbrowser.open(GITHUB_URL))
+        btn = ctk.CTkButton(win, text="GitHub", command=lambda: webbrowser.open(GITHUB_URL))
         btn.pack(pady=(0, 15))
 
     def _reg(self, w):
@@ -141,14 +141,14 @@ class TokenShrinkApp(ctk.CTk):
         frame_top.grid_columnconfigure(1, weight=1) 
         frame_top.grid_columnconfigure(3, weight=1) 
 
-        self._reg(ctk.CTkLabel(frame_top, text="Modelo:")).grid(row=0, column=0, padx=2)
-        self.combo_modelos = self._reg(ctk.CTkComboBox(frame_top, values=["Cargando..."], state="readonly", 
+        self._reg(ctk.CTkLabel(frame_top, text="Model:")).grid(row=0, column=0, padx=2)
+        self.combo_modelos = self._reg(ctk.CTkComboBox(frame_top, values=["Loading..."], state="readonly", 
                                                       command=self._on_modelo_change, height=24, 
                                                       width=300)) 
         self.combo_modelos.grid(row=0, column=1, padx=2, sticky="ew")
 
-        self._reg(ctk.CTkLabel(frame_top, text="Destino:")).grid(row=0, column=2, padx=2)
-        self.combo_ventanas = self._reg(ctk.CTkComboBox(frame_top, values=["Sin apps"], state="readonly", 
+        self._reg(ctk.CTkLabel(frame_top, text="Target:")).grid(row=0, column=2, padx=2)
+        self.combo_ventanas = self._reg(ctk.CTkComboBox(frame_top, values=["No apps"], state="readonly", 
                                                        command=self._on_ventana_change, height=24, 
                                                        width=300)) 
         self.combo_ventanas.grid(row=0, column=3, padx=2, sticky="ew")
@@ -166,12 +166,12 @@ class TokenShrinkApp(ctk.CTk):
         
         f_in_label = ctk.CTkFrame(frame_in, fg_color="transparent")
         f_in_label.pack(fill="x", pady=1)
-        self._reg(ctk.CTkLabel(f_in_label, text="Prompt Original")).pack(side="left", padx=5)
+        self._reg(ctk.CTkLabel(f_in_label, text="Source Prompt")).pack(side="left", padx=5)
         self._reg(ctk.CTkButton(f_in_label, text="📜", width=24, height=20, command=self._abrir_historial)).pack(side="right", padx=2)
         
         # Controles inferiores primero para que no desaparezcan
-        self._reg(ctk.CTkButton(frame_in, text="Optimizar", height=24, command=self._ejecutar)).pack(side="bottom", pady=2)
-        self.label_comp = self._reg(ctk.CTkLabel(frame_in, text="Compresión: -", text_color="gray"))
+        self._reg(ctk.CTkButton(frame_in, text="Optimize", height=24, command=self._ejecutar)).pack(side="bottom", pady=2)
+        self.label_comp = self._reg(ctk.CTkLabel(frame_in, text="Savings: -", text_color="gray"))
         self.label_comp.pack(side="bottom", pady=0)
 
         self.text_entrada = ctk.CTkTextbox(frame_in) 
@@ -190,13 +190,13 @@ class TokenShrinkApp(ctk.CTk):
         frame_out = ctk.CTkFrame(self)
         frame_out.grid(row=2, column=0, sticky="nsew", padx=5, pady=2)
         self.frame_out = frame_out
-        self._reg(ctk.CTkLabel(frame_out, text="Prompt Optimizado")).pack(pady=1)
+        self._reg(ctk.CTkLabel(frame_out, text="Optimized Output")).pack(pady=1)
         
         # Botones primero en el fondo para que no desaparezcan
         f_btns_out = ctk.CTkFrame(frame_out, fg_color="transparent")
         f_btns_out.pack(side="bottom", pady=2)
-        self._reg(ctk.CTkButton(f_btns_out, text="Copiar", width=60, height=22, command=self._copiar)).pack(side="left", padx=2)
-        self._reg(ctk.CTkButton(f_btns_out, text="Enviar", width=60, height=22, command=self._enviar)).pack(side="left", padx=2)
+        self._reg(ctk.CTkButton(f_btns_out, text="Copy", width=60, height=22, command=self._copiar)).pack(side="left", padx=2)
+        self._reg(ctk.CTkButton(f_btns_out, text="Inject", width=60, height=22, command=self._enviar)).pack(side="left", padx=2)
 
         self.text_salida = ctk.CTkTextbox(frame_out) 
         self.text_salida.pack(fill="both", expand=True, padx=2, pady=1)
@@ -205,11 +205,11 @@ class TokenShrinkApp(ctk.CTk):
         frame_foot = ctk.CTkFrame(self)
         frame_foot.grid(row=3, column=0, sticky="ew", padx=5, pady=2)
         
-        self.sw_show = self._reg(ctk.CTkSwitch(frame_foot, text="Mostrar", height=18, width=36, command=self._toggle_mostrar))
+        self.sw_show = self._reg(ctk.CTkSwitch(frame_foot, text="Preview", height=18, width=36, command=self._toggle_mostrar))
         self.sw_show.select()
         self.sw_show.pack(side="left", padx=5)
 
-        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="Traducir a ES", height=18, width=36, command=self._toggle_idioma))
+        self.sw_es = self._reg(ctk.CTkSwitch(frame_foot, text="Translate", height=18, width=36, command=self._toggle_idioma))
         self.sw_es.select()
         self.sw_es.pack(side="left", padx=5)
 
@@ -228,7 +228,7 @@ class TokenShrinkApp(ctk.CTk):
         self.lbl_t_out = self._reg(ctk.CTkLabel(f_stats, text="Out: 0", text_color="green", font=("Roboto", self._tamano_texto, "bold")))
         self.lbl_t_out.pack(side="left", padx=5)
 
-        self.label_st = self._reg(ctk.CTkLabel(self, text="Listo", text_color="gray"))
+        self.label_st = self._reg(ctk.CTkLabel(self, text="Ready", text_color="gray"))
         self.label_st.grid(row=4, column=0, sticky="w", padx=5)
 
         self.label_ver = self._reg(ctk.CTkLabel(self, text=f"v{CURRENT_VERSION}", text_color="gray", cursor="hand2"))
@@ -247,7 +247,7 @@ class TokenShrinkApp(ctk.CTk):
         self._aplicar_fuente()
 
     def _cargar_datos_iniciales(self):
-        self.label_st.configure(text="Cargando sesión...", text_color="yellow")
+        self.label_st.configure(text="Booting...", text_color="yellow")
         
         # Aplicar estados guardados
         if not self.config.get("mostrar_resultado", True): 
@@ -262,7 +262,7 @@ class TokenShrinkApp(ctk.CTk):
         
         self._cargar_modelos()
         self._actualizar_listas()
-        self.label_st.configure(text="Listo", text_color="gray")
+        self.label_st.configure(text="Ready", text_color="gray")
 
     def _cargar_modelos(self):
         self.modelos = self.ai_engine.get_available_models()
@@ -310,7 +310,7 @@ class TokenShrinkApp(ctk.CTk):
         
         self._historial_idx = -1 # Resetear navegación
         self._ultimo_prompt = p
-        self.label_st.configure(text="Optimizando...", text_color="yellow")
+        self.label_st.configure(text="Shrinking...", text_color="yellow")
         self.ai_engine.optimize_prompt(p, self._on_complete, self.sw_es.get(), self.combo_modo.get())
 
     def _on_complete(self, dual, stats):
@@ -338,8 +338,8 @@ class TokenShrinkApp(ctk.CTk):
             else:
                 c = 0
             color = "#2ecc71" if c >= 0 else "#e74c3c"
-            self.label_comp.configure(text=f"Compresión: {c:.1f}%", text_color=color)
-        self.label_st.configure(text="Listo", text_color="green")
+            self.label_comp.configure(text=f"Savings: {c:.1f}%", text_color=color)
+        self.label_st.configure(text="Ready", text_color="green")
         if not self.sw_show.get(): self._enviar()
 
     def _copiar(self):
@@ -350,7 +350,7 @@ class TokenShrinkApp(ctk.CTk):
         t = self.text_salida.get("1.0", "end").strip()
         v = self.combo_ventanas.get()
         if t and v:
-            self.label_st.configure(text="Enviando...", text_color="cyan")
+            self.label_st.configure(text="Injecting...", text_color="cyan")
             self.window_manager.focus_window_by_title(v)
             # Delay para asegurar foco antes de inyectar
             self.after(300, lambda: self.automation.inject_text(t))
@@ -368,7 +368,7 @@ class TokenShrinkApp(ctk.CTk):
 
     def _abrir_historial(self):
         if not self._historial_prompts:
-            self.label_st.configure(text="Historial vacío", text_color="orange")
+            self.label_st.configure(text="History Empty", text_color="orange")
             return
 
         # Si ya existe y es válida, traer al frente
@@ -379,7 +379,7 @@ class TokenShrinkApp(ctk.CTk):
 
         win = ctk.CTkToplevel(self)
         self._historial_window = win # <--- Guardar referencia
-        win.title("Historial de Prompts")
+        win.title("Prompt History")
         
         # Dimensiones persistentes para el historial
         w_h = self.config.get("historial_ancho", 600)
