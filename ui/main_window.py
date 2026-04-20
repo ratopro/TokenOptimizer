@@ -12,7 +12,7 @@ import webbrowser
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-CURRENT_VERSION = "1.1.0"
+CURRENT_VERSION = "1.1.1"
 GITHUB_URL = "https://github.com/ratopro/TokenOptimizer"
 
 LOCALES = {

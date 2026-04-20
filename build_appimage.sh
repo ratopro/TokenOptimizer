@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VERSION="1.1.0"
+export VERSION="1.1.1"
 APP_NAME="TokenOptimizer"
 
 echo "💎 Building AppImage for ${APP_NAME} v${VERSION}..."

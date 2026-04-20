@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=TokenOptimizer
-Exec=/usr/bin/tokenoptimizer
-Icon=tokenoptimizer
-Type=Application
-Categories=Development;Utility;
-Comment=AI Prompt Optimizer
-Terminal=false

@@ -1,0 +1,10 @@
+Package: tokenoptimizer
+Version: 1.1.1
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: xdotool, xclip, python3-tk
+Maintainer: Antigravity <antigravity@example.com>
+Description: Desktop app for prompt optimization via Ollama.
+ TokenOptimizer uses a symbolic pre-encoder and AI models to reduce 
+ prompt length while maintaining core meaning.
