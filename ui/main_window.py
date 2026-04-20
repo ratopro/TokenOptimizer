@@ -6,7 +6,7 @@ from utils.config import ConfigManager
 import threading
 import re
 import platform
-
+import os
 import webbrowser
 
 ctk.set_appearance_mode("dark")
@@ -130,6 +130,18 @@ class TokenShrinkApp(ctk.CTk):
 
         self._crear_interfaz()
         self.protocol("WM_DELETE_WINDOW", self._guardar_configuracion)
+        
+        # Cargar Icono (Base64 o Archivo)
+        try:
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "icon.png")
+            if os.path.exists(icon_path):
+                from PIL import Image, ImageTk
+                img = Image.open(icon_path)
+                photo = ImageTk.PhotoImage(img)
+                self.wm_iconphoto(True, photo)
+        except Exception as e:
+            print(f"[!] Error loading icon: {e}")
+
         self.after(100, self._cargar_datos_iniciales)
         self.after(500, self._verificar_dependencias)
         self.after(2000, lambda: threading.Thread(target=self._comprobar_actualizaciones, daemon=True).start())
@@ -262,10 +274,10 @@ class TokenShrinkApp(ctk.CTk):
         
         frame_btns = ctk.CTkFrame(frame_top, fg_color="transparent")
         frame_btns.grid(row=0, column=4, padx=2)
-        self._reg(ctk.CTkButton(frame_btns, text="↻", width=24, height=24, command=self._actualizar_listas)).pack(side="left", padx=1)
-        self._reg(ctk.CTkButton(frame_btns, text="🗑️", width=24, height=24, command=self._limpiar)).pack(side="left", padx=1)
-        self.btn_pin = self._reg(ctk.CTkButton(frame_btns, text="📌", width=24, height=24, command=self._toggle_siempre_visible))
-        self.btn_pin.pack(side="left", padx=1)
+        self._reg(ctk.CTkButton(frame_btns, text="↻", width=32, height=32, command=self._actualizar_listas)).pack(side="left", padx=2)
+        self._reg(ctk.CTkButton(frame_btns, text="🗑️", width=32, height=32, command=self._limpiar)).pack(side="left", padx=2)
+        self.btn_pin = self._reg(ctk.CTkButton(frame_btns, text="📌", width=32, height=32, command=self._toggle_siempre_visible))
+        self.btn_pin.pack(side="left", padx=2)
 
         # Entrada (Ocupa peso vertical)
         frame_in = ctk.CTkFrame(self)
@@ -273,13 +285,19 @@ class TokenShrinkApp(ctk.CTk):
         
         f_in_label = ctk.CTkFrame(frame_in, fg_color="transparent")
         f_in_label.pack(fill="x", pady=1)
+        f_in_label.grid_columnconfigure(0, weight=1) # Espacio a la izquierda
+        f_in_label.grid_columnconfigure(2, weight=1) # Espacio a la derecha
+        
         self.lbl_source = self._reg(ctk.CTkLabel(f_in_label, text="Source Prompt"))
-        self.lbl_source.pack(side="left", padx=5)
-        self._reg(ctk.CTkButton(f_in_label, text="📜", width=24, height=20, command=self._abrir_historial)).pack(side="right", padx=2)
+        self.lbl_source.grid(row=0, column=1, padx=5)
+        
+        # El botón de historial se queda a la derecha absoluta del frame
+        btn_hist = self._reg(ctk.CTkButton(f_in_label, text="📜", width=32, height=24, command=self._abrir_historial))
+        btn_hist.grid(row=0, column=2, sticky="e", padx=5)
         
         # Controles inferiores primero para que no desaparezcan
-        self.btn_opt = self._reg(ctk.CTkButton(frame_in, text="Optimize", height=24, command=self._ejecutar))
-        self.btn_opt.pack(side="bottom", pady=2)
+        self.btn_opt = self._reg(ctk.CTkButton(frame_in, text="Optimize", height=36, font=("Roboto", self._tamano_texto, "bold"), command=self._ejecutar))
+        self.btn_opt.pack(side="bottom", pady=5)
         self.label_comp = self._reg(ctk.CTkLabel(frame_in, text="Savings: -", text_color="gray"))
         self.label_comp.pack(side="bottom", pady=0)
 
@@ -304,11 +322,11 @@ class TokenShrinkApp(ctk.CTk):
         
         # Botones primero en el fondo para que no desaparezcan
         f_btns_out = ctk.CTkFrame(frame_out, fg_color="transparent")
-        f_btns_out.pack(side="bottom", pady=2)
-        self.btn_copy = self._reg(ctk.CTkButton(f_btns_out, text="Copy", width=60, height=22, command=self._copiar))
-        self.btn_copy.pack(side="left", padx=2)
-        self.btn_inject = self._reg(ctk.CTkButton(f_btns_out, text="Inject", width=60, height=22, command=self._enviar))
-        self.btn_inject.pack(side="left", padx=2)
+        f_btns_out.pack(side="bottom", pady=5)
+        self.btn_copy = self._reg(ctk.CTkButton(f_btns_out, text="Copy", width=90, height=30, command=self._copiar))
+        self.btn_copy.pack(side="left", padx=5)
+        self.btn_inject = self._reg(ctk.CTkButton(f_btns_out, text="Inject", width=90, height=30, command=self._enviar))
+        self.btn_inject.pack(side="left", padx=5)
 
         self.text_salida = ctk.CTkTextbox(frame_out) 
         self.text_salida.pack(fill="both", expand=True, padx=2, pady=1)
@@ -424,6 +442,17 @@ class TokenShrinkApp(ctk.CTk):
             self.text_salida.delete("1.0", "end")
             self.text_salida.insert("1.0", res)
 
+    def _get_target_language(self):
+        """
+        Lógica optimizada: Toggle EN ≈ ∞ active, ! ≡ user disable
+        ? active => default EN, ? disable => default interface language
+        """
+        interface_lang = self.combo_lang.get()
+        # Si el switch de traducción está activo (! ≡ user disable)
+        if self.sw_es.get():
+            return "English"
+        return interface_lang
+
     def _ejecutar(self):
         p = self.text_entrada.get("1.0", "end").strip()
         if not p: return
@@ -440,31 +469,31 @@ class TokenShrinkApp(ctk.CTk):
         t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
         self._set_status(t["shrinking"], "yellow", expire=False) # No expira mientras procesa
         
-        # Si 'Translate' está activo, forzamos Inglés. Si no, usamos el idioma de la App.
-        lang = "English" if self.sw_es.get() else self.combo_lang.get()
+        # Determinar idioma de destino usando la nueva lógica
+        lang = self._get_target_language()
         self.ai_engine.optimize_prompt(p, self._on_complete, lang, self.combo_modo.get())
 
     def _on_complete(self, dual, stats):
         import re
-        re_res = re.search(r"\[\[RES\]\](.*?)$", dual, re.DOTALL)
+        # Intentar extraer contenido entre etiquetas, sea [[RES]] o [[CualquierCosa]]
+        # Priorizar [[RES]] pero ser flexible si el modelo inventa etiquetas
+        re_res = re.search(r"\[\[(?:RES|.*?)\]\](.*?)(?:\[\[/RES\]\]|\]\]|$)", dual, re.DOTALL)
         res = re_res.group(1).strip() if re_res else dual
+        
         self.text_salida.delete("1.0", "end")
         self.text_salida.insert("1.0", res)
         
         # Actualizar contadores
-        self.lbl_t_in.configure(text=f"In: {stats['in']}")
+        in_tokens = stats.get('in', 0)
+        user_in_est = stats.get('user_in_est', 0)
+        self.lbl_t_in.configure(text=f"In: {in_tokens}")
         
-        # Calcular tokens de salida reales del texto seleccionado (estimación precisa)
-        out_tokens = len(res) // 4 if len(res) > 0 else 0
+        # Calcular tokens de salida reales del texto (estimación 4 chars/token si no hay stats)
+        out_tokens = stats.get('out', len(res) // 4)
         self.lbl_t_out.configure(text=f"Out: {out_tokens}")
 
-        if self._ultimo_prompt:
-            # Compresión basada en tokens reales (estimados para ambos para consistencia)
-            in_est = len(self._ultimo_prompt) // 4
-            if in_est > 0:
-                c = ((in_est - out_tokens) / in_est) * 100
-            else:
-                c = 0
+        if user_in_est > 0:
+            c = ((user_in_est - out_tokens) / user_in_est) * 100
             color = "#2ecc71" if c >= 0 else "#e74c3c"
             t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
             self.label_comp.configure(text=f"{t['savings']} {c:.1f}%", text_color=color)
