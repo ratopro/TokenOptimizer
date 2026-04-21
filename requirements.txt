@@ -1,18 +1,18 @@
 # Interfaz Gráfica
-customtkinter
-darkdetect
+customtkinter>=5.2.0
+darkdetect>=0.8.0
 
 # IA y NLP
-ollama
-requests
-spacy
+ollama>=0.3.0
+requests>=2.32.4
+spacy>=3.8.0
 
 # Automatización e Inyección
-pyautogui
-pyperclip
-pynput
+pyautogui>=0.9.54
+pyperclip>=1.9.0
+pynput>=1.8.0
 
 # Gestión de Ventanas y Sistema
-psutil
-pygetwindow; sys_platform == 'win32'
-pyobjc; sys_platform == 'darwin'
+psutil>=6.1.0
+pygetwindow>=0.3.0; sys_platform == 'win32'
+pyobjc>=11.0.0; sys_platform == 'darwin'

@@ -19,14 +19,12 @@ class AutomationController:
     def inject_text(self, text: str) -> bool:
         if not text:
             return False
-
         try:
-            pyperclip.copy(text)
-
-            if self.injection_method == "paste":
-                return self._inject_via_paste()
-            else:
-                return self._inject_via_typewrite(text)
+            pyautogui.typewrite(text, interval=0.005)
+            if self.send_enter_after:
+                time.sleep(0.1)
+                pyautogui.press("enter")
+            return True
         except Exception as e:
             print(f"[Error] Injection failed: {e}")
             return False

@@ -12,7 +12,7 @@ import webbrowser
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-CURRENT_VERSION = "1.1.1"
+CURRENT_VERSION = "1.1.2"
 GITHUB_URL = "https://github.com/ratopro/TokenOptimizer"
 
 LOCALES = {
@@ -294,10 +294,14 @@ class TokenShrinkApp(ctk.CTk):
         # El botón de historial se queda a la derecha absoluta del frame
         btn_hist = self._reg(ctk.CTkButton(f_in_label, text="📜", width=32, height=24, command=self._abrir_historial))
         btn_hist.grid(row=0, column=2, sticky="e", padx=5)
-        
+
         # Controles inferiores primero para que no desaparezcan
-        self.btn_opt = self._reg(ctk.CTkButton(frame_in, text="Optimize", height=36, font=("Roboto", self._tamano_texto, "bold"), command=self._ejecutar))
-        self.btn_opt.pack(side="bottom", pady=5)
+        btn_frame = ctk.CTkFrame(frame_in, fg_color="transparent")
+        btn_frame.pack(side="bottom", pady=5)
+        self.btn_opt = self._reg(ctk.CTkButton(btn_frame, text="Optimize", height=36, font=("Roboto", self._tamano_texto, "bold"), command=self._ejecutar))
+        self.btn_opt.pack(side="left", padx=5)
+        self.btn_inject_src = self._reg(ctk.CTkButton(btn_frame, text="Inject Source", height=36, font=("Roboto", self._tamano_texto, "bold"), command=self._enviar_source))
+        self.btn_inject_src.pack(side="left", padx=5)
         self.label_comp = self._reg(ctk.CTkLabel(frame_in, text="Savings: -", text_color="gray"))
         self.label_comp.pack(side="bottom", pady=0)
 
@@ -464,10 +468,11 @@ class TokenShrinkApp(ctk.CTk):
             self._historial_prompts.insert(0, {"ts": ts, "prompt": p})
             if len(self._historial_prompts) > 50: self._historial_prompts.pop()
         
-        self._historial_idx = -1 # Resetear navegación
+        self._historial_idx = -1
         self._ultimo_prompt = p
         t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])
-        self._set_status(t["shrinking"], "yellow", expire=False) # No expira mientras procesa
+        self.label_comp.configure(text=f"{t['savings']} -", text_color="gray")
+        self._set_status(t["shrinking"], "yellow", expire=False)
         
         # Determinar idioma de destino usando la nueva lógica
         lang = self._get_target_language()
@@ -475,10 +480,14 @@ class TokenShrinkApp(ctk.CTk):
 
     def _on_complete(self, dual, stats):
         import re
-        # Intentar extraer contenido entre etiquetas, sea [[RES]] o [[CualquierCosa]]
-        # Priorizar [[RES]] pero ser flexible si el modelo inventa etiquetas
-        re_res = re.search(r"\[\[(?:RES|.*?)\]\](.*?)(?:\[\[/RES\]\]|\]\]|$)", dual, re.DOTALL)
-        res = re_res.group(1).strip() if re_res else dual
+        res = dual
+        match = re.search(r'\[\[RES\]\](.*?)\[\[/RES\]\]', dual, re.DOTALL)
+        if match:
+            res = match.group(1).strip()
+        else:
+            match = re.search(r'\[\[(?:RES|.*?)\]\](.*?)$', dual, re.DOTALL)
+            if match:
+                res = match.group(1).strip()
         
         self.text_salida.delete("1.0", "end")
         self.text_salida.insert("1.0", res)
@@ -512,9 +521,17 @@ class TokenShrinkApp(ctk.CTk):
             msg_t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])["injecting"]
             self._set_status(msg_t, "cyan", expire=True)
             self.window_manager.focus_window_by_title(v)
-            # Delay para asegurar foco antes de inyectar
             self.after(300, lambda: self.automation.inject_text(t))
-            self.after(400, self._limpiar) # <--- Limpieza automática tras el envío
+            self.after(400, self._limpiar)
+
+    def _enviar_source(self):
+        t = self.text_entrada.get("1.0", "end").strip()
+        v = self.combo_ventanas.get()
+        if t and v:
+            msg_t = LOCALES.get(self.combo_lang.get(), LOCALES["EN"])["injecting"]
+            self._set_status(msg_t, "cyan", expire=True)
+            self.window_manager.focus_window_by_title(v)
+            self.after(300, lambda: self.automation.inject_text(t))
 
     def _toggle_mostrar(self):
         self.config.set("mostrar_resultado", self.sw_show.get())
