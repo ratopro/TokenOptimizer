@@ -2,7 +2,7 @@
 
 # Configuration
 PKG_NAME="tokenoptimizer"
-VERSION="1.1.1"
+VERSION="1.1.2"
 BUILD_DIR="${PKG_NAME}_${VERSION}"
 
 echo "🔨 Building .deb package for ${PKG_NAME} v${VERSION}..."
